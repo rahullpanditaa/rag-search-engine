@@ -1,5 +1,6 @@
 import string
 from pathlib import Path
+from nltk.stem import PorterStemmer
 
 def remove_all_punctuation_lowercase(text: str) -> str:
     tt = str.maketrans("", "", string.punctuation)
@@ -28,4 +29,8 @@ def remove_stop_words(tokens: list[str]) -> list[str]:
             continue
         result.append(token)
 
-    return result
+    return stem_tokens(result)
+
+def stem_tokens(tokens: list[str]) -> list[str]:
+    stemmer = PorterStemmer()
+    return list(map(lambda token: stemmer.stem(token), tokens))
