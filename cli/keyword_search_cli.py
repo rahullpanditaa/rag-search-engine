@@ -16,7 +16,7 @@ def main() -> None:
     match args.command:
         case "search":
             print(f"Searching for: {args.query}")
-            search_title_in_movies(args.query)
+            search_title_in_movies(args.query.lower())
             
         case _:
             parser.print_help()

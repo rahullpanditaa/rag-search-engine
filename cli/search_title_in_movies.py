@@ -9,7 +9,7 @@ def search_title_in_movies(search_query: str) -> list:
     results = []
     movies = movies_dict["movies"]
     for movie in sorted(movies, key=lambda m: m["id"]):
-        if search_query in movie["title"]:
+        if search_query in movie["title"].lower():
             results.append(movie["title"])
 
     for i, movie in enumerate(results):
