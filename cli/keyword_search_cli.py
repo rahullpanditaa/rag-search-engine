@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+from search_title_in_movies import search_title_in_movies
 
 
 def main() -> None:
@@ -14,8 +15,9 @@ def main() -> None:
 
     match args.command:
         case "search":
-            # print the search query here
             print(f"Searching for: {args.query}")
+            search_title_in_movies(args.query)
+            
         case _:
             parser.print_help()
 
