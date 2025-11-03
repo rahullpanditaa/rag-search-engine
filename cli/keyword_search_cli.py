@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-from search_title_in_movies import search_title_in_movies
+from search_title_in_movies import keyword_search
 from helpers import remove_all_punctuation_lowercase
 
 
@@ -18,7 +18,7 @@ def main() -> None:
         case "search":
             print(f"Searching for: {args.query}")
             query = remove_all_punctuation_lowercase(args.query)
-            search_title_in_movies(query)
+            keyword_search(query)
             
         case _:
             parser.print_help()
