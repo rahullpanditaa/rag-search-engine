@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from helpers import remove_all_punctuation_lowercase
+from helpers import remove_all_punctuation_lowercase, tokenize, compare_token_lists
 
 def search_title_in_movies(search_query: str) -> list:
     movies_data_path = Path(__file__).resolve().parent.parent / "data" / "movies.json"
@@ -8,10 +8,12 @@ def search_title_in_movies(search_query: str) -> list:
         movies_dict = json.load(f)
 
     results = []
+    query_tokens = tokenize(search_query)
     movies = movies_dict["movies"]
     for movie in sorted(movies, key=lambda m: m["id"]):
         title = remove_all_punctuation_lowercase(movie["title"])
-        if search_query in title:
+        title_tokens = tokenize(title)
+        if compare_token_lists(query_tokens=query_tokens, data_tokens=title_tokens):
             results.append(movie["title"])
 
     for i, movie in enumerate(results):
