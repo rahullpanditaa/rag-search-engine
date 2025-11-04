@@ -37,6 +37,14 @@ def stem_tokens(tokens: list[str]) -> list[str]:
     stemmer = PorterStemmer()
     return list(map(lambda token: stemmer.stem(token), tokens))
 
+def process_text_to_tokens(text: str) -> list[str]:
+    tokens = remove_all_punctuation_lowercase(text)
+    tokens = tokenize(tokens)
+    tokens = remove_stop_words(tokens)
+    tokens = stem_tokens(tokens)
+    return tokens
+
+
 def get_movie_data_from_file() -> list[dict]:
     movies_data_path = Path(__file__).resolve().parent.parent / "data" / "movies.json"
     with open(movies_data_path, "r") as f:
