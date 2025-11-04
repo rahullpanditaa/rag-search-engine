@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-from keyword_search import keyword_search
-from helpers import remove_all_punctuation_lowercase, process_text_to_tokens, tokenize
 from inverted_index import search_command, build_command
 
 
