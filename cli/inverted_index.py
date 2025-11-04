@@ -27,8 +27,6 @@ class InvertedIndex:
             
     
     def get_documents(self, term: str) -> list[int]:
-        # term is given token
-        # get the set of doc ids
         doc_ids = self.index.get(term.lower())
         if not doc_ids:
             return []
@@ -53,5 +51,26 @@ class InvertedIndex:
             self.docmap = pickle.load(docmap_dump)
        
 
+def build_command() -> None:
+    index = InvertedIndex()
+    index.build()
+    index.save()
         
-        
+def search_command(search_query: str) -> list[dict]:
+    index = InvertedIndex()
+    index.load()
+
+    query_tokens = process_text_to_tokens(search_query)
+
+    results, doc_ids_seen = [], set()
+    for token in query_tokens:
+        doc_ids = index.get_documents(token)
+        for doc_id in doc_ids:
+            if doc_id not in doc_ids_seen:
+                doc_ids_seen.add(doc_id)
+                movie_doc = index.docmap[doc_id]
+                results.append(movie_doc)
+                if len(results) == 5:
+                    return results
+                
+    return results

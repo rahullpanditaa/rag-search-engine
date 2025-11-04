@@ -3,7 +3,7 @@
 import argparse
 from keyword_search import keyword_search
 from helpers import remove_all_punctuation_lowercase, process_text_to_tokens, tokenize
-from inverted_index import InvertedIndex
+from inverted_index import search_command, build_command
 
 
 def main() -> None:
@@ -16,46 +16,21 @@ def main() -> None:
     build_parser = subparsers.add_parser("build", help="Build the inverted index, save it to disk")
     args = parser.parse_args()
 
-    inverted_index = InvertedIndex()
     match args.command:
         case "search":
+            print("Building inverted index...")
             try:
-                inverted_index.load()
+                movie_docs = search_command(args.query)
+                print("Inverted Index built!!")
             except FileNotFoundError:
                 print("Index not built.")
                 return
-            query_tokens = process_text_to_tokens(args.query)
-
-            results = []
-            doc_ids_matched = set()
-            for token in query_tokens:
-                doc_ids = inverted_index.get_documents(token)
-                for doc_id in doc_ids:
-                    if doc_id not in doc_ids_matched:
-                        doc_ids_matched.add(doc_id)
-                        results.append(doc_id)
             
-            print(f"Total results: {len(results)}")
-
-            for doc_id in results:
-                movie = inverted_index.docmap[doc_id]
-                if "Klansman" in movie["title"]:
-                    print(f"Found Klansman at ID: {doc_id}")
-                    break
-
-            for doc_id in results:
-                movie = inverted_index.docmap[doc_id]
-                if "Madrasapattinam" in movie["title"]:
-                    print(f"Found Madrasapattinam at ID: {doc_id}")
-                    break
-            for doc_id in results[:5]:
-                movie = inverted_index.docmap[doc_id]
-                print(f"Movie ID: {doc_id}, Title: {movie["title"]}")
+            for i, movie in enumerate(movie_docs):
+                print(f"{i+1}. Movie ID: {movie["id"]}, Movie Title: {movie["title"]}")
                 
         case "build":
-            # inverted_index = InvertedIndex()
-            inverted_index.build()
-            inverted_index.save()
+            build_command()
             
         case _:
             parser.print_help()
