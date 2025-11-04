@@ -1,4 +1,5 @@
 import string
+import json
 from pathlib import Path
 from nltk.stem import PorterStemmer
 
@@ -15,6 +16,7 @@ def compare_token_lists(query_tokens: list[str], data_tokens: list[str]) -> bool
             if qt in dt:
                 return True
     return False 
+
 
 def remove_stop_words(tokens: list[str]) -> list[str]:
     stop_words_file = Path(__file__).resolve().parent.parent / "data" / "stopwords.txt"
@@ -34,3 +36,10 @@ def remove_stop_words(tokens: list[str]) -> list[str]:
 def stem_tokens(tokens: list[str]) -> list[str]:
     stemmer = PorterStemmer()
     return list(map(lambda token: stemmer.stem(token), tokens))
+
+def get_movie_data_from_file():
+    movies_data_path = Path(__file__).resolve().parent.parent / "data" / "movies.json"
+    with open(movies_data_path, "r") as f:
+        movies_dict = json.load(f)
+    # returns a list of movie dicts [{id, title, description}]
+    return movies_dict["movies"]

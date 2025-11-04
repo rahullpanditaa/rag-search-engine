@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-from search_title_in_movies import keyword_search
+from cli.keyword_search import keyword_search
 from helpers import remove_all_punctuation_lowercase
 
 
