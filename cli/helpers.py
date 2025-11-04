@@ -8,7 +8,7 @@ def remove_all_punctuation_lowercase(text: str) -> str:
     return text.translate(tt).lower()
 
 def tokenize(text: str) -> list[str]:
-    return text.split()
+    return text.lower().split()
 
 def compare_token_lists(query_tokens: list[str], data_tokens: list[str]) -> bool:
     for qt in query_tokens:
@@ -37,7 +37,7 @@ def stem_tokens(tokens: list[str]) -> list[str]:
     stemmer = PorterStemmer()
     return list(map(lambda token: stemmer.stem(token), tokens))
 
-def get_movie_data_from_file():
+def get_movie_data_from_file() -> list[dict]:
     movies_data_path = Path(__file__).resolve().parent.parent / "data" / "movies.json"
     with open(movies_data_path, "r") as f:
         movies_dict = json.load(f)
