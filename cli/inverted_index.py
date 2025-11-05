@@ -73,8 +73,12 @@ class InvertedIndex:
 
         # given doc ids length
         doc_length = self.doc_lengths[doc_id]
+
+        avg_doc_length = self.__get_avg_doc_length()
+
+        ratio = doc_length / avg_doc_length
         
-        length_norm = 1 - b + b * (doc_length / self.__get_avg_doc_length())
+        length_norm = 1 - b + b * (ratio)
 
         # saturate tf
         return (raw_tf * (k1 + 1)) / (raw_tf + k1 * length_norm)
@@ -112,17 +116,14 @@ class InvertedIndex:
         # calculate avg doc length
         # sum of length of all docs / number of docs
         number_of_docs = len(self.doc_lengths)
-        if len(number_of_docs) == 0:
+        if number_of_docs == 0:
             # no docs
             return 0.0
 
-        sum_of_lengths = 0
-
-        for length in self.doc_lengths.values():
-            sum_of_lengths += length
+        sum_of_lengths = sum(self.doc_lengths.values())
 
         avg = sum_of_lengths / number_of_docs
-        return f"{avg:.2f}"
+        return avg
         
        
 

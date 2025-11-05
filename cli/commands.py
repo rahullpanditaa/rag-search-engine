@@ -33,8 +33,8 @@ def bm25_idf_command(term: str) -> float:
     
     return index.get_bm25_idf(term=term)
 
-def bm25_tf_command(doc_id: int, term: str, k1: float=None) -> float:
+def bm25_tf_command(doc_id: int, term: str, k1: float, b: float) -> float:
     index = InvertedIndex()
     index.load()
 
-    return index.get_bm25_tf(doc_id=doc_id, term=term, k1=k1)
+    return index.get_bm25_tf(doc_id=doc_id, term=term, k1=k1, b=b)
