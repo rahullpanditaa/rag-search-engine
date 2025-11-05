@@ -2,7 +2,7 @@
 
 import argparse
 from inverted_index import search_command, build_command, tf_command
-from commands import idf_command
+from commands import idf_command, tfidf_command
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Keyword Search CLI")
@@ -19,6 +19,11 @@ def main() -> None:
     
     idf_parser = subparsers.add_parser("idf", help="Calculate IDF for given term")
     idf_parser.add_argument("term", type=str, help="Term whose IDF is to be calculated")
+    
+    tfidf_parser = subparsers.add_parser("tfidf", help="Calculate the TF-IDF score for given document and term")
+    tfidf_parser.add_argument("document_ID", type=int, help="Document ID")
+    tfidf_parser.add_argument("search_term", type=str, help="Search term whose TF-IDF score is to be calculated")
+    
     args = parser.parse_args()
 
     match args.command:
@@ -47,7 +52,12 @@ def main() -> None:
             idf = idf_command(args.term)
             print(f"Inverse document frequency of '{args.term}': {idf:.2f}")
 
-        
+        case "tfidf":
+            doc_id = args.document_ID
+            term = args.search_term
+            print(f"Finding TF-IDF score of '{term} in document '{doc_id}...")
+            tf_idf = tfidf_command(doc_id=doc_id, term=term)
+            print(f"TF-IDF score of '{term}' in document '{doc_id}': {tf_idf:.2f}")
         case _:
             parser.print_help()
 

@@ -1,5 +1,5 @@
 import math
-from inverted_index import InvertedIndex
+from inverted_index import InvertedIndex, tf_command
 from helpers import process_text_to_tokens
 
 def idf_command(term: str) -> float:
@@ -17,3 +17,12 @@ def idf_command(term: str) -> float:
 
     idf = math.log((doc_count + 1) / (term_doc_count + 1))
     return idf
+
+def tfidf_command(doc_id: int, term: str) -> float:
+    index = InvertedIndex()
+    index.load()
+
+    tf = tf_command(doc_id=doc_id, search_term=term)
+    idf = idf_command(term=term)
+
+    return tf * idf
