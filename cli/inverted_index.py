@@ -2,6 +2,7 @@ from helpers import process_text_to_tokens, get_movie_data_from_file
 from pathlib import Path
 import pickle
 from collections import Counter
+from math import log
 
 class InvertedIndex:
     index: dict[str, set[int]]
@@ -41,6 +42,22 @@ class InvertedIndex:
             raise ValueError("multiple tokens given, need a single token")
         tf = self.term_frequencies[doc_id][term_token[0]]
         return tf
+    
+    def get_bm25_idf(self, term: str) -> float:
+        tokenized_term = process_text_to_tokens(term)
+        if len(tokenized_term) != 1:
+            raise ValueError(f"Given term {term} has multiple tokens, single required")
+        
+        # term appears in how many docs?
+        df = 0
+        for _, term_count in self.term_frequencies.items():
+            if tokenized_term[0] in term_count:
+                df += 1
+        
+        # N - total docs
+        n = len(self.term_frequencies)
+
+        return log((n - df + 0.5) / (df + 0.5) + 1)
             
     
     def get_documents(self, term: str) -> list[int]:
