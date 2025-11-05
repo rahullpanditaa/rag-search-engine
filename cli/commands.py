@@ -26,3 +26,9 @@ def tfidf_command(doc_id: int, term: str) -> float:
     idf = idf_command(term=term)
 
     return tf * idf
+
+def bm25_idf_command(term: str) -> float:
+    index = InvertedIndex()
+    index.load()
+    
+    return index.get_bm25_idf(term=term)
