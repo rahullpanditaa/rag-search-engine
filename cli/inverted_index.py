@@ -67,12 +67,17 @@ class InvertedIndex:
 
         return log((n - df + 0.5) / (df + 0.5) + 1)
     
-    def get_bm25_tf(self, doc_id: int, term: str, k1=BM25_K1) -> float:
+    def get_bm25_tf(self, doc_id: int, term: str, k1: float=BM25_K1, b: float=BM25_B) -> float:
         # raw tf
         raw_tf = self.get_tf(doc_id=doc_id, term=term)
 
+        # given doc ids length
+        doc_length = self.doc_lengths[doc_id]
+        
+        length_norm = 1 - b + b * (doc_length / self.__get_avg_doc_length())
+
         # saturate tf
-        return (raw_tf * (k1 + 1)) / (raw_tf + k1)
+        return (raw_tf * (k1 + 1)) / (raw_tf + k1 * length_norm)
             
     
     def get_documents(self, term: str) -> list[int]:
