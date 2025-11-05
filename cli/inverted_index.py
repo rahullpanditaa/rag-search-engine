@@ -82,7 +82,12 @@ class InvertedIndex:
 
         # saturate tf
         return (raw_tf * (k1 + 1)) / (raw_tf + k1 * length_norm)
-            
+
+    def bm25(self, doc_id: int, term: str) -> float:
+        bm25tf = self.get_bm25_tf(doc_id=doc_id, term=term)
+        bm25idf = self.get_bm25_idf(term=term)
+
+        return bm25tf * bm25idf    
     
     def get_documents(self, term: str) -> list[int]:
         doc_ids = self.index.get(term.lower())
