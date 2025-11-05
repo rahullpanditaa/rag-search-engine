@@ -90,16 +90,35 @@ class InvertedIndex:
 
     def save(self):
         type(self).cache_dir_path.mkdir(parents=True, exist_ok=True)
-        with type(self).index_file_path.open("wb") as index_dump, type(self).docmap_file_path.open("wb") as docmap_dump, type(self).term_frequencies_file_path.open("wb") as term_frequencies_dump:
+        with type(self).index_file_path.open("wb") as index_dump, type(self).docmap_file_path.open("wb") as docmap_dump, type(self).term_frequencies_file_path.open("wb") as term_frequencies_dump, type(self).doc_lengths_path.open("wb") as doc_lengths_dump:
             pickle.dump(self.index, index_dump)
             pickle.dump(self.docmap, docmap_dump)
             pickle.dump(self.term_frequencies, term_frequencies_dump)
+            pickle.dump(self.doc_lengths, doc_lengths_dump)
 
     def load(self):
-        with type(self).index_file_path.open("rb") as index_dump, type(self).docmap_file_path.open("rb") as docmap_dump, type(self).term_frequencies_file_path.open("rb") as term_frequencies_dump:
+        with type(self).index_file_path.open("rb") as index_dump, type(self).docmap_file_path.open("rb") as docmap_dump, type(self).term_frequencies_file_path.open("rb") as term_frequencies_dump, type(self).doc_lengths_path.open("rb") as doc_lengths_dump:
             self.index = pickle.load(index_dump)
             self.docmap = pickle.load(docmap_dump)
             self.term_frequencies = pickle.load(term_frequencies_dump)
+            self.doc_lengths = pickle.load(doc_lengths_dump)
+
+    def __get_avg_doc_length(self) -> float:
+        # calculate avg doc length
+        # sum of length of all docs / number of docs
+        number_of_docs = len(self.doc_lengths)
+        if len(number_of_docs) == 0:
+            # no docs
+            return 0.0
+
+        sum_of_lengths = 0
+
+        for length in self.doc_lengths.values():
+            sum_of_lengths += length
+
+        avg = sum_of_lengths / number_of_docs
+        return f"{avg:.2f}"
+        
        
 
 def build_command() -> None:
