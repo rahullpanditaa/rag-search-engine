@@ -1,4 +1,4 @@
-from helpers import process_text_to_tokens, get_movie_data_from_file, BM25_K1
+from helpers import process_text_to_tokens, get_movie_data_from_file, BM25_K1, BM25_B
 from pathlib import Path
 import pickle
 from collections import Counter
@@ -8,11 +8,13 @@ class InvertedIndex:
     index: dict[str, set[int]]
     docmap: dict[int, dict[str, object]]
     term_frequencies: dict[int, Counter[str]]
+    doc_lengths: dict[int, int]
 
     cache_dir_path = Path(__file__).resolve().parent.parent / "cache"
     index_file_path = cache_dir_path / "index.pkl"
     docmap_file_path = cache_dir_path / "docmap.pkl"
     term_frequencies_file_path = cache_dir_path / "term_frequencies.pkl"
+    doc_lengths_path = cache_dir_path / "doc_lengths.pkl"
 
     def __init__(self):
         # dict mapping tokens(str) to sets of doc ids
@@ -25,6 +27,8 @@ class InvertedIndex:
         # doc id -> Counter keeping track of how often each term appears in doc
         self.term_frequencies = {}
 
+        self.doc_lengths = {}
+
     def __add_document(self, doc_id: int, text: str):
         # tokenize input text
         tokens = process_text_to_tokens(text=text)
@@ -34,7 +38,11 @@ class InvertedIndex:
             self.index[token].add(doc_id)
 
         # if doc_id not in self.term_frequencies:
-        self.term_frequencies[doc_id] = Counter(tokens)   
+        self.term_frequencies[doc_id] = Counter(tokens)  
+
+        # total number of tokens in each doc
+        for doc_id, tokens_counter in self.term_frequencies.items():
+            self.doc_lengths[doc_id] = tokens_counter.total()
 
     def get_tf(self, doc_id: int, term: str) -> int:
         term_token = process_text_to_tokens(term)
