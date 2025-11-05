@@ -1,14 +1,17 @@
 from helpers import process_text_to_tokens, get_movie_data_from_file
 from pathlib import Path
 import pickle
+from collections import Counter
 
 class InvertedIndex:
     index: dict[str, set[int]]
     docmap: dict[int, dict[str, object]]
+    term_frequencies: dict[int, Counter[str]]
 
     cache_dir_path = Path(__file__).resolve().parent.parent / "cache"
     index_file_path = cache_dir_path / "index.pkl"
     docmap_file_path = cache_dir_path / "docmap.pkl"
+    term_frequencies_file_path = cache_dir_path / "term_frequencies.pkl"
 
     def __init__(self):
         # dict mapping tokens(str) to sets of doc ids
@@ -17,6 +20,10 @@ class InvertedIndex:
         # dict mapping doc id to full doc objects {id, title, desciption}
         self.docmap = {}
 
+        # dict mapping doc ids to Counter objects
+        # doc id -> Counter keeping track of how often each term appears in doc
+        self.term_frequencies = {}
+
     def __add_document(self, doc_id: int, text: str):
         # tokenize input text
         tokens = process_text_to_tokens(text=text)
@@ -24,6 +31,16 @@ class InvertedIndex:
             if token not in self.index:
                 self.index[token] = set()
             self.index[token].add(doc_id)
+
+        # if doc_id not in self.term_frequencies:
+        self.term_frequencies[doc_id] = Counter(tokens)   
+
+    def get_tf(self, doc_id: int, term: str) -> int:
+        term_token = process_text_to_tokens(term)
+        if len(term_token) != 1:
+            raise ValueError("multiple tokens given, need a single token")
+        tf = self.term_frequencies[doc_id][term_token[0]]
+        return tf
             
     
     def get_documents(self, term: str) -> list[int]:
@@ -41,14 +58,16 @@ class InvertedIndex:
 
     def save(self):
         type(self).cache_dir_path.mkdir(parents=True, exist_ok=True)
-        with type(self).index_file_path.open("wb") as index_dump, type(self).docmap_file_path.open("wb") as docmap_dump:
+        with type(self).index_file_path.open("wb") as index_dump, type(self).docmap_file_path.open("wb") as docmap_dump, type(self).term_frequencies_file_path.open("wb") as term_frequencies_dump:
             pickle.dump(self.index, index_dump)
             pickle.dump(self.docmap, docmap_dump)
+            pickle.dump(self.term_frequencies, term_frequencies_dump)
 
     def load(self):
-        with type(self).index_file_path.open("rb") as index_dump, type(self).docmap_file_path.open("rb") as docmap_dump:
+        with type(self).index_file_path.open("rb") as index_dump, type(self).docmap_file_path.open("rb") as docmap_dump, type(self).term_frequencies_file_path.open("rb") as term_frequencies_dump:
             self.index = pickle.load(index_dump)
             self.docmap = pickle.load(docmap_dump)
+            self.term_frequencies = pickle.load(term_frequencies_dump)
        
 
 def build_command() -> None:
@@ -74,3 +93,9 @@ def search_command(search_query: str) -> list[dict]:
                     return results
                 
     return results
+
+def tf_command(doc_id: int, search_term: str) -> int:
+    index = InvertedIndex()
+    index.load()
+
+    return index.get_tf(doc_id=doc_id, term=search_term)
