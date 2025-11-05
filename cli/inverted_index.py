@@ -1,4 +1,4 @@
-from helpers import process_text_to_tokens, get_movie_data_from_file
+from helpers import process_text_to_tokens, get_movie_data_from_file, BM25_K1
 from pathlib import Path
 import pickle
 from collections import Counter
@@ -58,6 +58,13 @@ class InvertedIndex:
         n = len(self.term_frequencies)
 
         return log((n - df + 0.5) / (df + 0.5) + 1)
+    
+    def get_bm25_tf(self, doc_id: int, term: str, k1=BM25_K1) -> float:
+        # raw tf
+        raw_tf = self.get_tf(doc_id=doc_id, term=term)
+
+        # saturate tf
+        return (raw_tf * (k1 + 1)) / (raw_tf + k1)
             
     
     def get_documents(self, term: str) -> list[int]:
