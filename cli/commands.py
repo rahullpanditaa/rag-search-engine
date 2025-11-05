@@ -38,3 +38,13 @@ def bm25_tf_command(doc_id: int, term: str, k1: float, b: float) -> float:
     index.load()
 
     return index.get_bm25_tf(doc_id=doc_id, term=term, k1=k1, b=b)
+
+def bm25_search_command(query: str):
+    index = InvertedIndex()
+    index.load()
+
+    scores = index.bm25_search(query, 5)
+
+    for i, score in enumerate(scores):
+        doc_title = index.docmap[score[0]]["title"]
+        print(f"{i+1}. ({score[0]}) {doc_title} - Score: {score[1]:.2f}")

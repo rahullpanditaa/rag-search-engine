@@ -93,10 +93,10 @@ class InvertedIndex:
         docs_bm25_scores: dict[int, int] = {}
 
         for token in query_tokens:
-            if token in self.index.keys():
-                for doc_id in self.index[token]:
-                    bm25_score = self.bm25(doc_id=doc_id, term=token)
-                    docs_bm25_scores[doc_id] += bm25_score 
+            docs_having_token = self.index.get(token, {})
+            for doc_id in docs_having_token:
+                score = self.bm25(doc_id=doc_id, term=token)
+                docs_bm25_scores[doc_id] = docs_bm25_scores.get(doc_id, 0.0) + score
         
         # list of tuples(doc_id, bm25 score)
         sorted_scores = sorted(docs_bm25_scores.items(), key=lambda d: d[1], reverse=True)
