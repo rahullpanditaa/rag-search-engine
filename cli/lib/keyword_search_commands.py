@@ -1,6 +1,36 @@
 import math
-from inverted_index import InvertedIndex, tf_command
-from helpers import process_text_to_tokens
+from cli.lib.inverted_index import InvertedIndex
+from cli.lib.utils import process_text_to_tokens
+
+def build_command() -> None:
+    index = InvertedIndex()
+    index.build()
+    index.save()
+        
+def search_command(search_query: str) -> list[dict]:
+    index = InvertedIndex()
+    index.load()
+
+    query_tokens = process_text_to_tokens(search_query)
+
+    results, doc_ids_seen = [], set()
+    for token in query_tokens:
+        doc_ids = index.get_documents(token)
+        for doc_id in doc_ids:
+            if doc_id not in doc_ids_seen:
+                doc_ids_seen.add(doc_id)
+                movie_doc = index.docmap[doc_id]
+                results.append(movie_doc)
+                if len(results) == 5:
+                    return results
+                
+    return results
+
+def tf_command(doc_id: int, search_term: str) -> int:
+    index = InvertedIndex()
+    index.load()
+
+    return index.get_tf(doc_id=doc_id, term=search_term)
 
 def idf_command(term: str) -> float:
     index = InvertedIndex()

@@ -1,4 +1,4 @@
-from helpers import process_text_to_tokens, get_movie_data_from_file, BM25_K1, BM25_B
+from cli.lib.utils import process_text_to_tokens, get_movie_data_from_file, BM25_K1, BM25_B
 from pathlib import Path
 import pickle
 from collections import Counter
@@ -30,7 +30,6 @@ class InvertedIndex:
         self.doc_lengths = {}
 
     def __add_document(self, doc_id: int, text: str):
-        # tokenize input text
         tokens = process_text_to_tokens(text=text)
         for token in tokens:
             if token not in self.index:
@@ -145,32 +144,3 @@ class InvertedIndex:
         
        
 
-def build_command() -> None:
-    index = InvertedIndex()
-    index.build()
-    index.save()
-        
-def search_command(search_query: str) -> list[dict]:
-    index = InvertedIndex()
-    index.load()
-
-    query_tokens = process_text_to_tokens(search_query)
-
-    results, doc_ids_seen = [], set()
-    for token in query_tokens:
-        doc_ids = index.get_documents(token)
-        for doc_id in doc_ids:
-            if doc_id not in doc_ids_seen:
-                doc_ids_seen.add(doc_id)
-                movie_doc = index.docmap[doc_id]
-                results.append(movie_doc)
-                if len(results) == 5:
-                    return results
-                
-    return results
-
-def tf_command(doc_id: int, search_term: str) -> int:
-    index = InvertedIndex()
-    index.load()
-
-    return index.get_tf(doc_id=doc_id, term=search_term)
