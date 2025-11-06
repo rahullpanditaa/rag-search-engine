@@ -40,6 +40,32 @@ class SemanticSearch:
             if len(self.embeddings) == len(documents):
                 return self.embeddings
         return self.build_embeddings(documents=documents)
+    
+    def search(self, query: str, limit: int):
+        if self.embeddings == None:
+            raise ValueError("No embeddings loaded. Call `load_or_create_embeddings` first.")
+        
+        query_embedding = self.generate_embedding(text=query)
+
+        docs_similarity_scores: list[tuple] = []
+
+        for i, doc_embedding in enumerate(self.embeddings):
+            doc = self.documents[i]
+            similarity_score = cosine_similarity(query_embedding, doc_embedding)
+            docs_similarity_scores.append(tuple(similarity_score, doc))
+        
+        sorted_scores = sorted(docs_similarity_scores, key=lambda t: t[0], reverse=True)
+
+        search_results = []
+        for doc_score in sorted_scores[:limit]:
+            result = {"score": doc_score[0], 
+                      "title": doc_score[1]["title"],
+                      "description": doc_score[1]["description"]}
+            search_results.append(result)
+        return search_results
+
+        
+        
 
 
 def verify_model():
