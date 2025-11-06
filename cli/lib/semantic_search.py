@@ -41,8 +41,8 @@ class SemanticSearch:
                 return self.embeddings
         return self.build_embeddings(documents=documents)
     
-    def search(self, query: str, limit: int):
-        if self.embeddings == None:
+    def search(self, query: str, limit: int) -> list[dict]:
+        if self.embeddings is None or len(self.embeddings) == 0:
             raise ValueError("No embeddings loaded. Call `load_or_create_embeddings` first.")
         
         query_embedding = self.generate_embedding(text=query)
@@ -52,7 +52,7 @@ class SemanticSearch:
         for i, doc_embedding in enumerate(self.embeddings):
             doc = self.documents[i]
             similarity_score = cosine_similarity(query_embedding, doc_embedding)
-            docs_similarity_scores.append(tuple(similarity_score, doc))
+            docs_similarity_scores.append((similarity_score, doc))
         
         sorted_scores = sorted(docs_similarity_scores, key=lambda t: t[0], reverse=True)
 
@@ -101,3 +101,14 @@ def cosine_similarity(vec1, vec2):
         return 0.0
     
     return dot_product / (norm1 * norm2)
+
+def search_command(query: str, limit: int=5):
+    sem_search = SemanticSearch()
+    movies_list = get_movie_data_from_file()
+    movie_embeddings = sem_search.load_or_create_embeddings(documents=movies_list)
+    results = sem_search.search(query=query, limit=limit)
+    for i, r in enumerate(results):
+        print(f"{i+1}. {r["title"]} (score: {r["score"]})")
+        print(f"{r["description"]}")
+        print()
+
