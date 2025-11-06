@@ -19,7 +19,7 @@ class SemanticSearch:
         embeddings = self.model.encode([text])
         return embeddings[0]
 
-    def build_embeddings(self, documents):
+    def build_embeddings(self, documents: list[dict]):
         all_docs_str = []
         self.documents = documents
         for doc in self.documents:
