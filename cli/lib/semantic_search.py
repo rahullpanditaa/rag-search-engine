@@ -63,8 +63,6 @@ class SemanticSearch:
                       "description": doc_score[1]["description"]}
             search_results.append(result)
         return search_results
-
-        
         
 
 
