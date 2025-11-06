@@ -10,7 +10,7 @@ class InvertedIndex:
     term_frequencies: dict[int, Counter[str]]
     doc_lengths: dict[int, int]
 
-    cache_dir_path = Path(__file__).resolve().parent.parent / "cache"
+    cache_dir_path = Path(__file__).resolve().parent.parent.parent / "cache"
     index_file_path = cache_dir_path / "index.pkl"
     docmap_file_path = cache_dir_path / "docmap.pkl"
     term_frequencies_file_path = cache_dir_path / "term_frequencies.pkl"

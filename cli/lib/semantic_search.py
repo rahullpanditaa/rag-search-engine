@@ -1,8 +1,16 @@
+import numpy as np
 from sentence_transformers import SentenceTransformer
+from pathlib import Path
 
 class SemanticSearch:
+    cache_dir_path = Path(__file__).resolve().parent.parent.parent / "cache"
+    movie_embeddings_path = cache_dir_path / "movie_embeddings.py"
+
     def __init__(self):
         self.model = SentenceTransformer('all-MiniLM-L6-V2')
+        self.embeddings = None
+        self.documents = None
+        self.document_map = dict()
 
     def generate_embedding(self, text: str):
         if text == "" or text.isspace():
@@ -11,6 +19,15 @@ class SemanticSearch:
         embeddings = self.model.encode([text])
         return embeddings[0]
 
+    def build_embeddings(self, documents):
+        all_docs_str = []
+        self.documents = documents
+        for doc in self.documents:
+            self.document_map[doc["id"]] = doc
+            all_docs_str.append(f"{doc['title']}: {doc['description']}")
+        self.embeddings = self.model.encode(all_docs_str, show_progress_bar=True)
+        np.save(type(self).movie_embeddings_path)
+        return self.embeddings
 
 
 def verify_model():
