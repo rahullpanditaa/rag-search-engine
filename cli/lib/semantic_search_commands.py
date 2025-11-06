@@ -38,14 +38,40 @@ def search_command(query: str, limit: int=5):
         print(f"{r["description"]}")
         print()
 
-def chunk_command(text: str, chunk_size: int=200):
+def chunk_command(text: str, chunk_size: int=200, overlap: int=0):
+    
+    
+    # for i in range(0, len(words), chunk_size):
+    #     chunk = " ".join(words[i:i + chunk_size])
+    #     chunks.append(chunk)
+
+    # print(f"Chunking {len(text)} characters")
+    # for i, ch in enumerate(chunks, 1):     
+    #     print(f"{i}. {ch}")
+    
     words = text.split()
     chunks = []
-    
-    for i in range(0, len(words), chunk_size):
-        chunk = " ".join(words[i:i + chunk_size])
+    i = 0
+
+    while i < len(words):
+        chunk = " ".join(words[i: i+chunk_size])
         chunks.append(chunk)
+        if overlap > 0:
+            i += chunk_size - overlap
+        else:
+            i += chunk_size
 
     print(f"Chunking {len(text)} characters")
     for i, ch in enumerate(chunks, 1):     
         print(f"{i}. {ch}")
+    
+    
+    # if overlap > 0:
+    #     while i < len(words):
+    #         chunk = " ".join(words[overlap+i:i+chunk_size])
+    #         chunks.append(chunk)
+    #         i += chunk_size
+    # else:
+    #     chunk = " ".join(words[i:i+chunk_size])
+
+
