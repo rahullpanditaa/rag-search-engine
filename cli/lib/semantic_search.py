@@ -1,6 +1,7 @@
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from pathlib import Path
+from lib.utils import get_movie_data_from_file
 
 class SemanticSearch:
     cache_dir_path = Path(__file__).resolve().parent.parent.parent / "cache"
@@ -35,9 +36,9 @@ class SemanticSearch:
             self.document_map[doc["id"]] = doc
 
         if type(self).movie_embeddings_path.exists():
-            self.embeddings = np.load(type(self).movie_embeddings_path, "r")
-        if len(self.embeddings) == documents:
-            return self.embeddings
+            self.embeddings = np.load(type(self).movie_embeddings_path)
+            if len(self.embeddings) == len(documents):
+                return self.embeddings
         return self.build_embeddings(documents=documents)
 
 
@@ -52,3 +53,10 @@ def embed_text(text: str):
     print(f"Text: {text}")
     print(f"First 3 dimensions: {embedding[:3]}")
     print(f"Dimensions: {embedding.shape[0]}")
+
+def verify_embeddings():
+    sem_search = SemanticSearch()
+    movies_list_docs = get_movie_data_from_file()
+    embeddings = sem_search.load_or_create_embeddings(movies_list_docs)
+    print(f"Number of docs: {len(movies_list_docs)}")
+    print(f"Embeddings of shape: {embeddings.shape[0]} vectors in {embeddings.shape[1]} dimensions")    

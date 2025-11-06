@@ -49,7 +49,7 @@ def process_text_to_tokens(text: str) -> list[str]:
 
 
 def get_movie_data_from_file() -> list[dict]:
-    movies_data_path = Path(__file__).resolve().parent.parent / "data" / "movies.json"
+    movies_data_path = Path(__file__).resolve().parent.parent.parent / "data" / "movies.json"
     with open(movies_data_path, "r") as f:
         movies_dict = json.load(f)
     # returns a list of movie dicts [{id, title, description}]
