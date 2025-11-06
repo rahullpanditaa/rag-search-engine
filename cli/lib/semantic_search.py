@@ -26,8 +26,19 @@ class SemanticSearch:
             self.document_map[doc["id"]] = doc
             all_docs_str.append(f"{doc['title']}: {doc['description']}")
         self.embeddings = self.model.encode(all_docs_str, show_progress_bar=True)
-        np.save(type(self).movie_embeddings_path)
+        np.save(type(self).movie_embeddings_path, self.embeddings)
         return self.embeddings
+
+    def load_or_create_embeddings(self, documents: list[dict]):
+        self.documents = documents
+        for doc in self.documents:
+            self.document_map[doc["id"]] = doc
+
+        if type(self).movie_embeddings_path.exists():
+            self.embeddings = np.load(type(self).movie_embeddings_path, "r")
+        if len(self.embeddings) == documents:
+            return self.embeddings
+        return self.build_embeddings(documents=documents)
 
 
 def verify_model():
