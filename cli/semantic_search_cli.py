@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-from lib.semantic_search import verify_model, embed_text, verify_embeddings, embed_query_text, search_command
+from lib.semantic_search_commands import verify_model, embed_text, verify_embeddings, embed_query_text, search_command, chunk_command
 
 def main():
     parser = argparse.ArgumentParser(description="Semantic Search CLI")
@@ -20,6 +20,11 @@ def main():
     search_parser = subparsers.add_parser("search", help="Search for argument query, generate similarity score for each document")
     search_parser.add_argument("query", type=str, help="Query to compare with each doc and calculate similarity scores for")
     search_parser.add_argument("--limit", type=int, nargs='?', default=5, help="Number of results to return")
+    
+    chunk_parser = subparsers.add_parser("chunk", help="Chunk input text")
+    chunk_parser.add_argument("text", type=str, help="Text to chunk")
+    chunk_parser.add_argument("--chunk-size", type=int, nargs='?', default=200, help="Size of an individual chunk")
+
     args = parser.parse_args()
 
     match args.command:
@@ -38,6 +43,10 @@ def main():
             limit = args.limit
             print(f"Calculating similarity scores for given query '{query}' for {limit} docs...")
             search_command(query=query, limit=limit)
+        
+        case "chunk":
+            chunk_command(args.text, chunk_size=args.chunk_size)
+        
         case _:
             parser.print_help()
 
