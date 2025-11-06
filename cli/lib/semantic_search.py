@@ -5,7 +5,7 @@ from lib.utils import get_movie_data_from_file
 
 class SemanticSearch:
     cache_dir_path = Path(__file__).resolve().parent.parent.parent / "cache"
-    movie_embeddings_path = cache_dir_path / "movie_embeddings.py"
+    movie_embeddings_path = cache_dir_path / "movie_embeddings.npy"
 
     def __init__(self):
         self.model = SentenceTransformer('all-MiniLM-L6-V2')
@@ -60,3 +60,10 @@ def verify_embeddings():
     embeddings = sem_search.load_or_create_embeddings(movies_list_docs)
     print(f"Number of docs: {len(movies_list_docs)}")
     print(f"Embeddings of shape: {embeddings.shape[0]} vectors in {embeddings.shape[1]} dimensions")    
+
+def embed_query_text(query: str):
+    sem_search = SemanticSearch()
+    query_embedding = sem_search.generate_embedding(query)
+    print(f"Query: {query}")
+    print(f"First 5 dimensions: {query_embedding[:5]}")
+    print(f"Shape: {query_embedding.shape}")
