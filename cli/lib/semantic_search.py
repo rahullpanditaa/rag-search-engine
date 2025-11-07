@@ -7,8 +7,8 @@ class SemanticSearch:
     cache_dir_path = Path(__file__).resolve().parent.parent.parent / "cache"
     movie_embeddings_path = cache_dir_path / "movie_embeddings.npy"
 
-    def __init__(self):
-        self.model = SentenceTransformer('all-MiniLM-L6-V2')
+    def __init__(self, model_name="all-MiniLM-L6-v2"):
+        self.model = SentenceTransformer(model_name)
         self.embeddings = None
         self.documents = None
         self.document_map = dict()

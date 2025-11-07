@@ -38,6 +38,10 @@ def search_command(query: str, limit: int=5):
         print(f"{r["description"]}")
         print()
 
+
+
+
+
 def chunk_command(text: str, chunk_size: int=200, overlap: int=0):    
     words = text.split()
     chunks = []
@@ -55,9 +59,28 @@ def chunk_command(text: str, chunk_size: int=200, overlap: int=0):
     for i, ch in enumerate(chunks, 1):     
         print(f"{i}. {ch}")
     
+abbrevs = {"Mr.", "Mrs.", "Ms.", "Dr.", "Prof.", "Sr.", "Jr.", "Inc.", "Ltd.", "Co.", "St.", "Mt.", "U.S.", "U.K."}
+def split_sentences(text: str) -> list[str]:
+    parts = re.split(r'(?<=[.!?]["’”)]?)\s+(?=[A-Z])', text)
+    parts = [p.strip() for p in parts if p and p.strip()]
+    merged = []
+    for p in parts:
+        if merged:
+            prev = merged[-1]
+            last_token = prev.split()[-1] if prev.split() else ""
+            # merge if previous ends with an abbreviation or single-letter initial
+            if last_token in abbrevs or re.search(r'\b[A-Z]\.$', last_token):
+                merged[-1] = prev + " " + p
+                continue
+        merged.append(p)
+    return merged
+
+
 def semantic_chunk_command(text: str, max_chunk_size: int=4, overlap: int=0):
-    sentences = re.split(r"(?<=[.!?])\s+", text)
-    sentences = [sentence.strip() for sentence in sentences if sentence.strip()]
+    # pattern = r'(?<!\b(?:Mr|Mrs|Ms|Dr|Prof|Sr|Jr|Inc|Ltd|Co|St|Mt)\.)(?<!\b[A-Z]\.)(?<!\d)(?<=[.!?]["’”)]?)\s+(?=[A-Z])'
+    # sentences = re.split(pattern, text)
+    # sentences = [s.strip() for s in sentences if s.strip()]
+    sentences = split_sentences(text=text)
     chunks = []
     i = 0
 
@@ -69,6 +92,4 @@ def semantic_chunk_command(text: str, max_chunk_size: int=4, overlap: int=0):
         else:
             i += max_chunk_size
 
-    print(f"Semantically chunking {len(text)} characters")
-    for i, ch in enumerate(chunks, 1):
-        print(f"{i}. {ch}")
+    return chunks
