@@ -1,4 +1,4 @@
-import numpy as np
+import re
 from lib.semantic_search import SemanticSearch
 from lib.utils import get_movie_data_from_file
 
@@ -38,17 +38,7 @@ def search_command(query: str, limit: int=5):
         print(f"{r["description"]}")
         print()
 
-def chunk_command(text: str, chunk_size: int=200, overlap: int=0):
-    
-    
-    # for i in range(0, len(words), chunk_size):
-    #     chunk = " ".join(words[i:i + chunk_size])
-    #     chunks.append(chunk)
-
-    # print(f"Chunking {len(text)} characters")
-    # for i, ch in enumerate(chunks, 1):     
-    #     print(f"{i}. {ch}")
-    
+def chunk_command(text: str, chunk_size: int=200, overlap: int=0):    
     words = text.split()
     chunks = []
     i = 0
@@ -56,7 +46,7 @@ def chunk_command(text: str, chunk_size: int=200, overlap: int=0):
     while i < len(words):
         chunk = " ".join(words[i: i+chunk_size])
         chunks.append(chunk)
-        if overlap > 0:
+        if  0 < overlap < chunk_size:
             i += chunk_size - overlap
         else:
             i += chunk_size
@@ -65,13 +55,20 @@ def chunk_command(text: str, chunk_size: int=200, overlap: int=0):
     for i, ch in enumerate(chunks, 1):     
         print(f"{i}. {ch}")
     
-    
-    # if overlap > 0:
-    #     while i < len(words):
-    #         chunk = " ".join(words[overlap+i:i+chunk_size])
-    #         chunks.append(chunk)
-    #         i += chunk_size
-    # else:
-    #     chunk = " ".join(words[i:i+chunk_size])
+def semantic_chunk_command(text: str, max_chunk_size: int=4, overlap: int=0):
+    sentences = re.split(r"(?<=[.!?])\s+", text)
+    sentences = [sentence.strip() for sentence in sentences if sentence.strip()]
+    chunks = []
+    i = 0
 
+    while i < len(sentences):
+        chunk = " ".join(sentences[i: i+max_chunk_size])
+        chunks.append(chunk)
+        if  0 < overlap < max_chunk_size:
+            i += max_chunk_size - overlap
+        else:
+            i += max_chunk_size
 
+    print(f"Semantically chunking {len(text)} characters")
+    for i, ch in enumerate(chunks, 1):
+        print(f"{i}. {ch}")

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-from lib.semantic_search_commands import verify_model, embed_text, verify_embeddings, embed_query_text, search_command, chunk_command
+from lib.semantic_search_commands import verify_model, embed_text, verify_embeddings, embed_query_text, search_command, chunk_command, semantic_chunk_command
 
 def main():
     parser = argparse.ArgumentParser(description="Semantic Search CLI")
@@ -24,8 +24,12 @@ def main():
     chunk_parser = subparsers.add_parser("chunk", help="Chunk input text")
     chunk_parser.add_argument("text", type=str, help="Text to chunk")
     chunk_parser.add_argument("--chunk-size", type=int, nargs='?', default=200, help="Size of an individual chunk")
-    chunk_parser.add_argument("--overlap", type=int, nargs='?', default=0, help="How much words should overlap between consecutive chunks")
+    chunk_parser.add_argument("--overlap", type=int, nargs='?', default=0, help="How many words should overlap between consecutive chunks")
 
+    semantic_chunk_parser = subparsers.add_parser("semantic_chunk", help="Split text on sentence boundaries to preserve meaning")
+    semantic_chunk_parser.add_argument("text", type=str, help="Text to chunk")
+    semantic_chunk_parser.add_argument("--max-chunk-size", type=int, nargs='?', default=4, help="Maximum size of a chunk")
+    semantic_chunk_parser.add_argument("--overlap", type=int, nargs='?', default=0, help="How many sentences should overlap")
     args = parser.parse_args()
 
     match args.command:
@@ -47,7 +51,8 @@ def main():
         
         case "chunk":
             chunk_command(args.text, chunk_size=args.chunk_size, overlap=args.overlap)
-        
+        case "semantic_chunk":
+            semantic_chunk_command(args.text, args.max_chunk_size, args.overlap)
         case _:
             parser.print_help()
 
