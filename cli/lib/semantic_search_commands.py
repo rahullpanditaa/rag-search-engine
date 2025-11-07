@@ -59,17 +59,28 @@ def chunk_command(text: str, chunk_size: int=200, overlap: int=0):
     for i, ch in enumerate(chunks, 1):     
         print(f"{i}. {ch}")
     
-abbrevs = {"Mr.", "Mrs.", "Ms.", "Dr.", "Prof.", "Sr.", "Jr.", "Inc.", "Ltd.", "Co.", "St.", "Mt.", "U.S.", "U.K."}
+# python
+ABBREVS = {
+    "Mr.", "Mrs.", "Ms.", "Dr.", "Prof.", "Sr.", "Jr."
+    # keep this small and common
+}
+
 def split_sentences(text: str) -> list[str]:
-    parts = re.split(r'(?<=[.!?]["’”)]?)\s+(?=[A-Z])', text)
-    parts = [p.strip() for p in parts if p and p.strip()]
+    sep = "<<<SPLIT>>>"
+    # insert separator without lookbehind
+    # pattern = r'([.!?]["’”)]?\s+)(?=[A-Z])'
+    pattern = r'([.!?]["’”)]?\s+)(?=[A-Z0-9“"])'
+    marked = re.sub(pattern, r'\1' + sep, text)
+    parts = [p.strip() for p in marked.split(sep) if p and p.strip()]
+
     merged = []
     for p in parts:
         if merged:
             prev = merged[-1]
-            last_token = prev.split()[-1] if prev.split() else ""
-            # merge if previous ends with an abbreviation or single-letter initial
-            if last_token in abbrevs or re.search(r'\b[A-Z]\.$', last_token):
+            tokens = prev.split()
+            last_token = tokens[-1] if tokens else ""
+            # merge only for common abbrevs or single-letter initials (e.g., "J.")
+            if last_token in ABBREVS or re.search(r'\b[A-Z]\.$', last_token):
                 merged[-1] = prev + " " + p
                 continue
         merged.append(p)
@@ -77,19 +88,15 @@ def split_sentences(text: str) -> list[str]:
 
 
 def semantic_chunk_command(text: str, max_chunk_size: int=4, overlap: int=0):
-    # pattern = r'(?<!\b(?:Mr|Mrs|Ms|Dr|Prof|Sr|Jr|Inc|Ltd|Co|St|Mt)\.)(?<!\b[A-Z]\.)(?<!\d)(?<=[.!?]["’”)]?)\s+(?=[A-Z])'
-    # sentences = re.split(pattern, text)
-    # sentences = [s.strip() for s in sentences if s.strip()]
-    sentences = split_sentences(text=text)
+    sentences = re.split(r"(?<=[.!?])\s+", text)
     chunks = []
     i = 0
 
     while i < len(sentences):
         chunk = " ".join(sentences[i: i+max_chunk_size])
-        chunks.append(chunk)
-        if  0 < overlap < max_chunk_size:
-            i += max_chunk_size - overlap
-        else:
-            i += max_chunk_size
+        if chunks and len(chunk) <= overlap:
+            break
+        chunks.append(" ".join(chunk))
+        i += max_chunk_size - overlap
 
     return chunks
