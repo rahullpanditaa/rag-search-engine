@@ -1,10 +1,10 @@
 import string
 import json
-from pathlib import Path
 from nltk.stem import PorterStemmer
-
-BM25_K1 = 1.5
-BM25_B = 0.75
+from .constants import (
+    STOPWORDS_FILE_PATH,
+    MOVIES_DATA_PATH
+)
 
 def remove_all_punctuation_lowercase(text: str) -> str:
     tt = str.maketrans("", "", string.punctuation)
@@ -22,8 +22,7 @@ def compare_token_lists(query_tokens: list[str], data_tokens: list[str]) -> bool
 
 
 def remove_stop_words(tokens: list[str]) -> list[str]:
-    stop_words_file = Path(__file__).resolve().parent.parent / "data" / "stopwords.txt"
-    with open(stop_words_file, "r") as f:
+    with open(STOPWORDS_FILE_PATH, "r") as f:
         words = f.read()
     
     stop_words  = words.splitlines()
@@ -49,8 +48,6 @@ def process_text_to_tokens(text: str) -> list[str]:
 
 
 def get_movie_data_from_file() -> list[dict]:
-    movies_data_path = Path(__file__).resolve().parent.parent.parent / "data" / "movies.json"
-    with open(movies_data_path, "r") as f:
+    with open(MOVIES_DATA_PATH, "r") as f:
         movies_dict = json.load(f)
-    # returns a list of movie dicts [{id, title, description}]
     return movies_dict["movies"]

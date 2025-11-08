@@ -1,6 +1,6 @@
 import math
-from cli.lib.inverted_index import InvertedIndex
-from cli.lib.utils import process_text_to_tokens
+from .inverted_index import InvertedIndex
+from .utils import process_text_to_tokens
 
 def build_command() -> None:
     index = InvertedIndex()

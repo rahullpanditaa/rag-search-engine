@@ -1,8 +1,11 @@
-from cli.lib.utils import process_text_to_tokens, get_movie_data_from_file, BM25_K1, BM25_B
+from cli.lib.utils import process_text_to_tokens, get_movie_data_from_file
 from pathlib import Path
 import pickle
 from collections import Counter
 from math import log
+from .constants import (
+    CACHE_DIR_PATH, INDEX_FILE_PATH, DOCMAP_FILE_PATH, TERM_FREQUENCIES_FILE_PATH, DOC_LENGTHS_PATH, BM25_K1, BM25_B
+)
 
 class InvertedIndex:
     index: dict[str, set[int]]
@@ -10,11 +13,11 @@ class InvertedIndex:
     term_frequencies: dict[int, Counter[str]]
     doc_lengths: dict[int, int]
 
-    cache_dir_path = Path(__file__).resolve().parent.parent.parent / "cache"
-    index_file_path = cache_dir_path / "index.pkl"
-    docmap_file_path = cache_dir_path / "docmap.pkl"
-    term_frequencies_file_path = cache_dir_path / "term_frequencies.pkl"
-    doc_lengths_path = cache_dir_path / "doc_lengths.pkl"
+    # cache_dir_path = Path(__file__).resolve().parent.parent.parent / "cache"
+    # index_file_path = cache_dir_path / "index.pkl"
+    # docmap_file_path = cache_dir_path / "docmap.pkl"
+    # term_frequencies_file_path = cache_dir_path / "term_frequencies.pkl"
+    # doc_lengths_path = cache_dir_path / "doc_lengths.pkl"
 
     def __init__(self):
         # dict mapping tokens(str) to sets of doc ids
@@ -115,15 +118,28 @@ class InvertedIndex:
             self.docmap[movie["id"]] = movie
 
     def save(self):
-        type(self).cache_dir_path.mkdir(parents=True, exist_ok=True)
-        with type(self).index_file_path.open("wb") as index_dump, type(self).docmap_file_path.open("wb") as docmap_dump, type(self).term_frequencies_file_path.open("wb") as term_frequencies_dump, type(self).doc_lengths_path.open("wb") as doc_lengths_dump:
+        # type(self).cache_dir_path.mkdir(parents=True, exist_ok=True)
+        CACHE_DIR_PATH.mkdir(parents=True, exist_ok=True)
+        # with type(self).index_file_path.open("wb") as index_dump, type(self).docmap_file_path.open("wb") as docmap_dump, type(self).term_frequencies_file_path.open("wb") as term_frequencies_dump, type(self).doc_lengths_path.open("wb") as doc_lengths_dump:
+        with (
+            INDEX_FILE_PATH.open("wb") as index_dump,
+            DOCMAP_FILE_PATH.open("wb") as docmap_dump,
+            TERM_FREQUENCIES_FILE_PATH.open("wb") as term_frequencies_dump,
+            DOC_LENGTHS_PATH.open("wb") as doc_lengths_dump
+            ):
             pickle.dump(self.index, index_dump)
             pickle.dump(self.docmap, docmap_dump)
             pickle.dump(self.term_frequencies, term_frequencies_dump)
             pickle.dump(self.doc_lengths, doc_lengths_dump)
 
     def load(self):
-        with type(self).index_file_path.open("rb") as index_dump, type(self).docmap_file_path.open("rb") as docmap_dump, type(self).term_frequencies_file_path.open("rb") as term_frequencies_dump, type(self).doc_lengths_path.open("rb") as doc_lengths_dump:
+        # with type(self).index_file_path.open("rb") as index_dump, type(self).docmap_file_path.open("rb") as docmap_dump, type(self).term_frequencies_file_path.open("rb") as term_frequencies_dump, type(self).doc_lengths_path.open("rb") as doc_lengths_dump:
+        with (
+            INDEX_FILE_PATH.open("rb") as index_dump,
+            DOCMAP_FILE_PATH.open("rb") as docmap_dump,
+            TERM_FREQUENCIES_FILE_PATH.open("rb") as term_frequencies_dump,
+            DOC_LENGTHS_PATH.open("rb") as doc_lengths_dump
+            ):
             self.index = pickle.load(index_dump)
             self.docmap = pickle.load(docmap_dump)
             self.term_frequencies = pickle.load(term_frequencies_dump)

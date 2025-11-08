@@ -1,6 +1,6 @@
-import re
-from lib.semantic_search import SemanticSearch
-from lib.utils import get_movie_data_from_file
+from .semantic_search import SemanticSearch
+from .utils import get_movie_data_from_file
+from .constants import DEFAULT_CHUNK_SIZE
 
 def verify_model():
     sem_search = SemanticSearch()
@@ -38,11 +38,7 @@ def search_command(query: str, limit: int=5):
         print(f"{r["description"]}")
         print()
 
-
-
-
-
-def chunk_command(text: str, chunk_size: int=200, overlap: int=0):    
+def chunk_command(text: str, chunk_size: int=DEFAULT_CHUNK_SIZE, overlap: int=0):    
     words = text.split()
     chunks = []
     i = 0
@@ -58,45 +54,3 @@ def chunk_command(text: str, chunk_size: int=200, overlap: int=0):
     print(f"Chunking {len(text)} characters")
     for i, ch in enumerate(chunks, 1):     
         print(f"{i}. {ch}")
-    
-# python
-ABBREVS = {
-    "Mr.", "Mrs.", "Ms.", "Dr.", "Prof.", "Sr.", "Jr."
-    # keep this small and common
-}
-
-def split_sentences(text: str) -> list[str]:
-    sep = "<<<SPLIT>>>"
-    # insert separator without lookbehind
-    # pattern = r'([.!?]["’”)]?\s+)(?=[A-Z])'
-    pattern = r'([.!?]["’”)]?\s+)(?=[A-Z0-9“"])'
-    marked = re.sub(pattern, r'\1' + sep, text)
-    parts = [p.strip() for p in marked.split(sep) if p and p.strip()]
-
-    merged = []
-    for p in parts:
-        if merged:
-            prev = merged[-1]
-            tokens = prev.split()
-            last_token = tokens[-1] if tokens else ""
-            # merge only for common abbrevs or single-letter initials (e.g., "J.")
-            if last_token in ABBREVS or re.search(r'\b[A-Z]\.$', last_token):
-                merged[-1] = prev + " " + p
-                continue
-        merged.append(p)
-    return merged
-
-
-def semantic_chunk_command(text: str, max_chunk_size: int=4, overlap: int=0):
-    sentences = re.split(r"(?<=[.!?])\s+", text)
-    chunks = []
-    i = 0
-
-    while i < len(sentences):
-        chunk = " ".join(sentences[i: i+max_chunk_size])
-        if chunks and len(chunk) <= overlap:
-            break
-        chunks.append(" ".join(chunk))
-        i += max_chunk_size - overlap
-
-    return chunks

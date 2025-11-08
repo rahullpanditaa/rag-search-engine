@@ -1,11 +1,11 @@
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from pathlib import Path
-from lib.utils import get_movie_data_from_file
+from .constants import MOVIE_EMBEDDINGS_PATH
 
 class SemanticSearch:
-    cache_dir_path = Path(__file__).resolve().parent.parent.parent / "cache"
-    movie_embeddings_path = cache_dir_path / "movie_embeddings.npy"
+    # cache_dir_path = Path(__file__).resolve().parent.parent.parent / "cache"
+    # movie_embeddings_path = cache_dir_path / "movie_embeddings.npy"
 
     def __init__(self, model_name="all-MiniLM-L6-v2"):
         self.model = SentenceTransformer(model_name)
@@ -27,7 +27,8 @@ class SemanticSearch:
             self.document_map[doc["id"]] = doc
             all_docs_str.append(f"{doc['title']}: {doc['description']}")
         self.embeddings = self.model.encode(all_docs_str, show_progress_bar=True)
-        np.save(type(self).movie_embeddings_path, self.embeddings)
+        # np.save(type(self).movie_embeddings_path, self.embeddings)
+        np.save(MOVIE_EMBEDDINGS_PATH, self.embeddings)
         return self.embeddings
 
     def load_or_create_embeddings(self, documents: list[dict]):
@@ -35,8 +36,9 @@ class SemanticSearch:
         for doc in self.documents:
             self.document_map[doc["id"]] = doc
 
-        if type(self).movie_embeddings_path.exists():
-            self.embeddings = np.load(type(self).movie_embeddings_path)
+        # if type(self).movie_embeddings_path.exists():
+        if MOVIE_EMBEDDINGS_PATH.exists():
+            self.embeddings = np.load(MOVIE_EMBEDDINGS_PATH)
             if len(self.embeddings) == len(documents):
                 return self.embeddings
         return self.build_embeddings(documents=documents)
