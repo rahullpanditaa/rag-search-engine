@@ -11,11 +11,9 @@ from .constants import (
     DEFAULT_SEMANTIC_CHUNK_SIZE, DEFAULT_CHUNK_OVERLAP
 )
 
-class ChunkedSemanticSearch(SemanticSearch):
-    # cache_dir_path = Path(__file__).resolve().parent.parent.parent / "cache"
-    # chunk_embeddings_path = cache_dir_path / "chunk_embeddings.npy"
-    # chunk_metadata_path = cache_dir_path / "chunk_metadata.json"
+from .semantic_search import cosine_similarity
 
+class ChunkedSemanticSearch(SemanticSearch):
     def __init__(self, model_name="all-MiniLM-L6-v2") -> None:
         super().__init__(model_name)
         self.chunk_embeddings = None
@@ -43,11 +41,8 @@ class ChunkedSemanticSearch(SemanticSearch):
                         "total_chunks": len(doc_description_chunks)
                     }
                 )
-        print("chunks:", len(all_chunks))
-        print("meta:", len(chunks_metadata))
         self.chunk_embeddings = self.model.encode(all_chunks, show_progress_bar=True)
         self.chunk_metadata = chunks_metadata
-        # np.save(type(self).chunk_embeddings_path, self.chunk_embeddings)
         CACHE_DIR_PATH.mkdir(parents=True, exist_ok=True)
         np.save(CHUNK_EMBEDDINGS_PATH, self.chunk_embeddings)
         
@@ -71,6 +66,50 @@ class ChunkedSemanticSearch(SemanticSearch):
             print(f"loaded meta: {len(self.chunk_metadata)}")
             return self.chunk_embeddings
         return self.build_chunk_embeddings(documents=documents)
+    
+    def search_chunks(self, query: str, limit: int=10):
+        query_embedding = self.generate_embedding(text=query)
+        chunk_scores: list[dict] = []
+
+        for chunk_idx, ch_embedding in enumerate(self.chunk_embeddings):
+            similarity_score = cosine_similarity(ch_embedding, query_embedding)
+            chunk_scores.append({
+                "chunk_idx": chunk_idx,
+                "movie_idx": self.chunk_metadata[chunk_idx]["movie_idx"],
+                "score": similarity_score
+            })
+
+        
+        # {movie_index/doc_id -> score}
+        movie_scores = {}
+
+        for score in chunk_scores:
+            mv_idx = score.get("movie_idx")
+            if mv_idx is None:
+                continue
+            current_score = movie_scores.get(mv_idx, float("-inf"))
+            new_score = score.get("score")
+            if new_score > current_score:
+                movie_scores[mv_idx] = new_score
+            
+        sorted_scores = dict(sorted(movie_scores.items(), key=lambda item: item[1], reverse=True))
+        sorted_scores = dict(list(sorted_scores.items())[:limit])
+
+        results = []
+        for doc_id, doc_score in sorted_scores.items():
+            doc_title = self.document_map[doc_id]["title"]
+            doc_description = self.document_map[doc_id]["description"][:100]
+            metadata = self.document_map[doc_id]
+            results.append({
+                "id": doc_id,
+                "title": doc_title,
+                "document": doc_description,
+                "score": round(doc_score, 2),
+                "metadata": metadata or {}
+            })
+
+        return results
+
 
 
 def semantic_chunk_command(text: str, max_chunk_size: int = DEFAULT_SEMANTIC_CHUNK_SIZE, overlap: int = DEFAULT_CHUNK_OVERLAP,
