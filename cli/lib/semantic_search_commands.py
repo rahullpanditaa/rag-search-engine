@@ -54,3 +54,4 @@ def chunk_command(text: str, chunk_size: int=DEFAULT_CHUNK_SIZE, overlap: int=0)
     print(f"Chunking {len(text)} characters")
     for i, ch in enumerate(chunks, 1):     
         print(f"{i}. {ch}")
+

@@ -8,7 +8,8 @@ from .constants import (
     CACHE_DIR_PATH,
     CHUNK_EMBEDDINGS_PATH, 
     CHUNK_METADATA_PATH, 
-    DEFAULT_SEMANTIC_CHUNK_SIZE, DEFAULT_CHUNK_OVERLAP
+    DEFAULT_SEMANTIC_CHUNK_SIZE, DEFAULT_CHUNK_OVERLAP,
+    SCORE_PRECISION
 )
 
 from .semantic_search import cosine_similarity
@@ -62,8 +63,6 @@ class ChunkedSemanticSearch(SemanticSearch):
             with open(CHUNK_METADATA_PATH, "r") as f:
                 metadata = json.load(f)
                 self.chunk_metadata = metadata["chunks"]
-            print(f"Loaded chunks: {len(self.chunk_embeddings)}")
-            print(f"loaded meta: {len(self.chunk_metadata)}")
             return self.chunk_embeddings
         return self.build_chunk_embeddings(documents=documents)
     
@@ -72,7 +71,7 @@ class ChunkedSemanticSearch(SemanticSearch):
         chunk_scores: list[dict] = []
 
         for chunk_idx, ch_embedding in enumerate(self.chunk_embeddings):
-            similarity_score = cosine_similarity(ch_embedding, query_embedding)
+            similarity_score = cosine_similarity(ch_embedding, query_embedding)            
             chunk_scores.append({
                 "chunk_idx": chunk_idx,
                 "movie_idx": self.chunk_metadata[chunk_idx]["movie_idx"],
@@ -95,17 +94,17 @@ class ChunkedSemanticSearch(SemanticSearch):
         sorted_scores = dict(sorted(movie_scores.items(), key=lambda item: item[1], reverse=True))
         sorted_scores = dict(list(sorted_scores.items())[:limit])
 
-        results = []
+        results: list[dict] = []
         for doc_id, doc_score in sorted_scores.items():
             doc_title = self.document_map[doc_id]["title"]
             doc_description = self.document_map[doc_id]["description"][:100]
-            metadata = self.document_map[doc_id]
+            metadata = self.document_map[doc_id].get("metadata", {})
             results.append({
                 "id": doc_id,
                 "title": doc_title,
                 "document": doc_description,
-                "score": round(doc_score, 2),
-                "metadata": metadata or {}
+                "score": round(doc_score, SCORE_PRECISION),
+                "metadata": metadata
             })
 
         return results
@@ -132,3 +131,13 @@ def embed_chunks_command():
     chunked_sem_search = ChunkedSemanticSearch()
     chunk_embeddings = chunked_sem_search.load_or_create_chunk_embeddings(movies_list)
     print(f"Generated {len(chunk_embeddings)} chunked embeddings")
+
+def search_chunked_command(query: str, limit: int=5) -> list[dict]:
+    movies_list = get_movie_data_from_file()
+    searcher = ChunkedSemanticSearch()
+    chunk_embeddings = searcher.load_or_create_chunk_embeddings(documents=movies_list)
+    results = searcher.search_chunks(query=query, limit=limit)
+
+    for i, result in enumerate(results, 1):
+        print(f"\n{i}. {result["title"]} (score: {result["score"]:.4f})")
+        print(f"   {result["document"]}...")

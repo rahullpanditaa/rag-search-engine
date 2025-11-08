@@ -9,7 +9,11 @@ from lib.semantic_search_commands import (
     search_command, 
     chunk_command
 )
-from lib.chunked_semantic_search import semantic_chunk_command, embed_chunks_command
+from lib.chunked_semantic_search import (
+    semantic_chunk_command, 
+    embed_chunks_command,
+    search_chunked_command
+)
 
 def main():
     parser = argparse.ArgumentParser(description="Semantic Search CLI")
@@ -40,6 +44,11 @@ def main():
     semantic_chunk_parser.add_argument("--overlap", type=int, nargs='?', default=0, help="How many sentences should overlap between chunks")
     
     embed_chunks_parser = subparsers.add_parser("embed_chunks", help="Embed all the chunks in a doc")
+    
+    search_chunked_parser = subparsers.add_parser("search_chunked", help="Search for a query in all the chunks, generate similarity score for each chunk and arg query")
+    search_chunked_parser.add_argument("query", type=str, help="Search query")
+    search_chunked_parser.add_argument("--limit", type=int, nargs='?', default=5, help="Number of results to return")
+
     args = parser.parse_args()
 
     match args.command:
@@ -70,6 +79,9 @@ def main():
         case "embed_chunks":
             embed_chunks_command()
         
+        case "search_chunked":
+            print(f"Searching for '{args.query}'. Generating upto {args.limit} results...")
+            search_chunked_command(query=args.query, limit=args.limit)
         case _:
             parser.print_help()
 
