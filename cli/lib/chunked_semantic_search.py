@@ -11,7 +11,6 @@ from .constants import (
     DEFAULT_SEMANTIC_CHUNK_SIZE, DEFAULT_CHUNK_OVERLAP,
     SCORE_PRECISION
 )
-
 from .semantic_search import cosine_similarity
 
 class ChunkedSemanticSearch(SemanticSearch):
@@ -84,31 +83,19 @@ class ChunkedSemanticSearch(SemanticSearch):
             })        
         # {movie_index/doc_id -> score}
         movie_scores = {}
-        # {movie_index/doc_id -> {sum_of_scores, num of chunks}}
 
         for chunk_score in chunk_scores:
-            mv_idx = chunk_score.get("movie_idx")
-            if mv_idx is None:
-                continue
-            if mv_idx not in movie_scores:
-                movie_scores[mv_idx] = {"sum_of_scores": 0, "num_of_chunks": 0}
-            current_chunk_score = chunk_score.get("score")
-            movie_scores[mv_idx]["sum_of_scores"] += current_chunk_score
-            movie_scores[mv_idx]["num_of_chunks"] += 1
-            # current_score = movie_scores.get(mv_idx, float("-inf"))
-            # new_score = score.get("score")
-            # if new_score > current_score:
-            #     movie_scores[mv_idx] = new_score
-        
-        # avg score for each movie index
-        final_movie_scores = {}
-        for doc_id, score_data in movie_scores.items():
-            sum_scores = score_data["sum_of_scores"]
-            num = score_data["num_of_chunks"]
-            final_movie_scores[doc_id] = sum_scores / num
-            
-        sorted_scores = dict(sorted(final_movie_scores.items(), key=lambda item: item[1], reverse=True))
-        sorted_scores = dict(list(final_movie_scores.items())[:limit])
+            movie_idx = chunk_score["movie_idx"]
+            if (
+                movie_idx not in movie_scores
+                or chunk_score["score"] > movie_scores[movie_idx]
+            ):
+                movie_scores[movie_idx] = chunk_score["score"]
+
+        sorted_scores = dict(
+            list(sorted(movie_scores.items(), key=lambda item: item[1], reverse=True))[:limit]
+        )
+
 
         results: list[dict] = []
         for doc_id, doc_score in sorted_scores.items():
@@ -124,8 +111,6 @@ class ChunkedSemanticSearch(SemanticSearch):
             })
 
         return results
-
-
 
 def semantic_chunk_command(text: str, max_chunk_size: int = DEFAULT_SEMANTIC_CHUNK_SIZE, overlap: int = DEFAULT_CHUNK_OVERLAP,
 ) -> list[str]:
@@ -155,5 +140,5 @@ def search_chunked_command(query: str, limit: int=5) -> list[dict]:
     results = searcher.search_chunks(query=query, limit=limit)
 
     for i, result in enumerate(results, 1):
-        print(f"\n{i}. {result["title"]} (score: {result["score"]:.4f})")
-        print(f"   {result["document"]}...")
+        print(f"\n{i}. {result['title']} (score: {result['score']:.4f})")
+        print(f"   {result['document']}...")
