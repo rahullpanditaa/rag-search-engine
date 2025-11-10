@@ -84,18 +84,31 @@ class ChunkedSemanticSearch(SemanticSearch):
             })        
         # {movie_index/doc_id -> score}
         movie_scores = {}
+        # {movie_index/doc_id -> {sum_of_scores, num of chunks}}
 
-        for score in chunk_scores:
-            mv_idx = score.get("movie_idx")
+        for chunk_score in chunk_scores:
+            mv_idx = chunk_score.get("movie_idx")
             if mv_idx is None:
                 continue
-            current_score = movie_scores.get(mv_idx, float("-inf"))
-            new_score = score.get("score")
-            if new_score > current_score:
-                movie_scores[mv_idx] = new_score
+            if mv_idx not in movie_scores:
+                movie_scores[mv_idx] = {"sum_of_scores": 0, "num_of_chunks": 0}
+            current_chunk_score = chunk_score.get("score")
+            movie_scores[mv_idx]["sum_of_scores"] += current_chunk_score
+            movie_scores[mv_idx]["num_of_chunks"] += 1
+            # current_score = movie_scores.get(mv_idx, float("-inf"))
+            # new_score = score.get("score")
+            # if new_score > current_score:
+            #     movie_scores[mv_idx] = new_score
+        
+        # avg score for each movie index
+        final_movie_scores = {}
+        for doc_id, score_data in movie_scores.items():
+            sum_scores = score_data["sum_of_scores"]
+            num = score_data["num_of_chunks"]
+            final_movie_scores[doc_id] = sum_scores / num
             
-        sorted_scores = dict(sorted(movie_scores.items(), key=lambda item: item[1], reverse=True))
-        sorted_scores = dict(list(sorted_scores.items())[:limit])
+        sorted_scores = dict(sorted(final_movie_scores.items(), key=lambda item: item[1], reverse=True))
+        sorted_scores = dict(list(final_movie_scores.items())[:limit])
 
         results: list[dict] = []
         for doc_id, doc_score in sorted_scores.items():
