@@ -19,6 +19,7 @@ class ChunkedSemanticSearch(SemanticSearch):
         super().__init__(model_name)
         self.chunk_embeddings = None
         self.chunk_metadata = None
+        self.list_of_all_chunks = []
 
     def build_chunk_embeddings(self, documents: list[dict]) -> np.ndarray:
         # documents -> list of {movie_id, title, description}
@@ -35,9 +36,14 @@ class ChunkedSemanticSearch(SemanticSearch):
                                                             overlap=DEFAULT_CHUNK_OVERLAP)
             for chunk_index, description_chunk in enumerate(doc_description_chunks):
                 all_chunks.append(description_chunk)
+                self.list_of_all_chunks.append({
+                    "movie_doc_index" : doc["id"],
+                    "chunk_index_inside_doc": chunk_index,
+                    "chunk_text": description_chunk
+                })
                 chunks_metadata.append(
                     {
-                        "movie_idx": doc_index,
+                        "movie_idx": doc["id"],
                         "chunk_idx": chunk_index,
                         "total_chunks": len(doc_description_chunks)
                     }
@@ -69,16 +75,13 @@ class ChunkedSemanticSearch(SemanticSearch):
     def search_chunks(self, query: str, limit: int=10):
         query_embedding = self.generate_embedding(text=query)
         chunk_scores: list[dict] = []
-
         for chunk_idx, ch_embedding in enumerate(self.chunk_embeddings):
             similarity_score = cosine_similarity(ch_embedding, query_embedding)            
             chunk_scores.append({
                 "chunk_idx": chunk_idx,
                 "movie_idx": self.chunk_metadata[chunk_idx]["movie_idx"],
                 "score": similarity_score
-            })
-
-        
+            })        
         # {movie_index/doc_id -> score}
         movie_scores = {}
 
