@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from google import genai
 
-load_dotenv()
+# load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
 
 prompt = "Why is Boot.dev such a great place to learn about RAG? Use one paragraph maximum."
