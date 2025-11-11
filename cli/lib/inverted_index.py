@@ -13,12 +13,6 @@ class InvertedIndex:
     term_frequencies: dict[int, Counter[str]]
     doc_lengths: dict[int, int]
 
-    # cache_dir_path = Path(__file__).resolve().parent.parent.parent / "cache"
-    # index_file_path = cache_dir_path / "index.pkl"
-    # docmap_file_path = cache_dir_path / "docmap.pkl"
-    # term_frequencies_file_path = cache_dir_path / "term_frequencies.pkl"
-    # doc_lengths_path = cache_dir_path / "doc_lengths.pkl"
-
     def __init__(self):
         # dict mapping tokens(str) to sets of doc ids
         self.index = {}
@@ -39,7 +33,6 @@ class InvertedIndex:
                 self.index[token] = set()
             self.index[token].add(doc_id)
 
-        # if doc_id not in self.term_frequencies:
         self.term_frequencies[doc_id] = Counter(tokens)  
 
         # total number of tokens in each doc
@@ -118,9 +111,7 @@ class InvertedIndex:
             self.docmap[movie["id"]] = movie
 
     def save(self):
-        # type(self).cache_dir_path.mkdir(parents=True, exist_ok=True)
         CACHE_DIR_PATH.mkdir(parents=True, exist_ok=True)
-        # with type(self).index_file_path.open("wb") as index_dump, type(self).docmap_file_path.open("wb") as docmap_dump, type(self).term_frequencies_file_path.open("wb") as term_frequencies_dump, type(self).doc_lengths_path.open("wb") as doc_lengths_dump:
         with (
             INDEX_FILE_PATH.open("wb") as index_dump,
             DOCMAP_FILE_PATH.open("wb") as docmap_dump,
@@ -133,7 +124,6 @@ class InvertedIndex:
             pickle.dump(self.doc_lengths, doc_lengths_dump)
 
     def load(self):
-        # with type(self).index_file_path.open("rb") as index_dump, type(self).docmap_file_path.open("rb") as docmap_dump, type(self).term_frequencies_file_path.open("rb") as term_frequencies_dump, type(self).doc_lengths_path.open("rb") as doc_lengths_dump:
         with (
             INDEX_FILE_PATH.open("rb") as index_dump,
             DOCMAP_FILE_PATH.open("rb") as docmap_dump,
