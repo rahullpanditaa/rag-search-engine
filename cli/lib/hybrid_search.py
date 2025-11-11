@@ -62,7 +62,7 @@ class HybridSearch:
         sorted_results = sorted(doc_scores.values(), key=lambda d: d["hybrid_score"], reverse=True)
         return sorted_results[:limit]
 
-    def rrf_search(self, query, k, limit=10):
+    def rrf_search(self, query, k, limit=10) -> list[dict]:
         bm25_results = self._bm25_search(query=query, limit=limit*500)
         bm25_ranks = [doc_id for doc_id, _ in bm25_results]
 
@@ -133,6 +133,20 @@ def weighted_search_command(query: str, alpha: float=0.5, limit: int=5) -> None:
         print(f"\n{i}. {result['title']}")
         print(f"Hybrid Score: {result['hybrid_score']:.4f}")
         print(f"BM25: {result['bm25_score']:.4f}, Semantic: {result['semantic_score']:.4f}")
+        print(f"{result['document']}")
+
+def rrf_search(query: str, k: int=60, limit: int=5) -> list[dict]:
+    movies = get_movie_data_from_file()
+    searcher = HybridSearch(documents=movies)
+    return searcher.rrf_search(query=query, k=k, limit=limit)
+
+def rrf_search_command(query: str, k: int=60, limit: int=5) -> None:
+    print(f"Searching for '{query}'. Generating upto {limit} results...")
+    results = rrf_search(query=query, k=k, limit=limit)
+    for i, result in enumerate(results, 1):
+        print(f"\n{i}. {result['title']}")
+        print(f"RRF Score: {result['rrf_score']}")
+        print(f"BM25 Rank: {result['bm25_rank']}, Semantic Rank: {result['semantic_rank']}")
         print(f"{result['document']}")
 
 
