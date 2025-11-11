@@ -8,6 +8,11 @@ def main() -> None:
 
     normalize_parser = subparsers.add_parser("normalize", help="Accept a list of scores, print the normalized scores")
     normalize_parser.add_argument("scores", type=float, nargs='+', help="List of scores to be normalized")
+    
+    weighted_search_parser = subparsers.add_parser("weighted-search", help="Search for query using weighted hybrid score (BM25 + Semantic Score)")
+    weighted_search_parser.add_argument("query", type=str, help="Query to search for")
+    weighted_search_parser.add_argument("--alpha", type=float, nargs='?', default=0.5, help="Constant used to dynamically control weighing between 2 scores")
+    weighted_search_parser.add_argument("-limit", type=int, nargs='?', default=5, help="Number of results to return from the search")    
     args = parser.parse_args()
 
     match args.command:
