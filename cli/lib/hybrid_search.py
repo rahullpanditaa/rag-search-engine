@@ -145,9 +145,9 @@ def rrf_search_command(query: str, k: int=60, limit: int=5) -> None:
     results = rrf_search(query=query, k=k, limit=limit)
     for i, result in enumerate(results, 1):
         print(f"\n{i}. {result['title']}")
-        print(f"RRF Score: {result['rrf_score']}")
+        print(f"RRF Score: {result['rrf_score']:.4f}")
         print(f"BM25 Rank: {result['bm25_rank']}, Semantic Rank: {result['semantic_rank']}")
-        print(f"{result['document']}")
+        print(f"{result['document']}...")
 
 
 def hybrid_score(bm25_score, semantic_score, alpha=0.5):

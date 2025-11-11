@@ -1,5 +1,9 @@
 import argparse
-from lib.hybrid_search import normalize_command, weighted_search_command
+from lib.hybrid_search import (
+    normalize_command, 
+    weighted_search_command,
+    rrf_search_command
+)
 
 
 def main() -> None:
@@ -25,6 +29,8 @@ def main() -> None:
             normalize_command(scores=args.scores)
         case "weighted-search":
             weighted_search_command(query=args.query, alpha=args.alpha, limit=args.limit)
+        case "rrf-search":
+            rrf_search_command(query=args.query, k=args.k, limit=args.limit)
         case _:
             parser.print_help()
 
