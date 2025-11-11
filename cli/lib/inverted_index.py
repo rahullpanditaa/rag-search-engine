@@ -1,4 +1,4 @@
-from cli.lib.utils import process_text_to_tokens, get_movie_data_from_file
+from .utils import process_text_to_tokens, get_movie_data_from_file
 from pathlib import Path
 import pickle
 from collections import Counter
