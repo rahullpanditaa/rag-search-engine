@@ -63,7 +63,39 @@ class HybridSearch:
         return sorted_results[:limit]
 
     def rrf_search(self, query, k, limit=10):
-        raise NotImplementedError("RRF hybrid search is not implemented yet.")
+        bm25_results = self._bm25_search(query=query, limit=limit*500)
+        bm25_ranks = [doc_id for doc_id, _ in bm25_results]
+
+        semantic_results = self.semantic_search.search_chunks(query=query, limit=limit*500)
+        semantic_ranks = [result["id"] for result in semantic_results]
+        # all doc ids in both results
+        all_doc_ids = set(bm25_ranks) | set(semantic_ranks)
+        document_map = {doc["id"]: doc for doc in self.documents}
+
+        doc_scores_map = {}
+
+        for doc_id in all_doc_ids:
+            bm25_rank = bm25_ranks.index(doc_id) + 1 if doc_id in bm25_ranks else None
+            semantic_rank = semantic_ranks.index(doc_id) + 1 if doc_id in semantic_ranks else None
+
+            rrf = 0.0
+            if bm25_rank is not None:
+                rrf += rrf_score(rank=bm25_rank, k=k)
+            if semantic_rank is not None:
+                rrf += rrf_score(rank=semantic_rank, k=k)
+            
+            doc = document_map.get(doc_id)
+            if doc:
+                doc_scores_map[doc_id] = {
+                    "id": doc_id,
+                    "title": doc.get("title", ""),
+                    "document": doc.get("description", "")[:100],
+                    "bm25_rank": bm25_rank,
+                    "semantic_rank": semantic_rank,
+                    "rrf_score": rrf
+                }
+        sorted_results = sorted(doc_scores_map.values(), key=lambda d: d["rrf_score"], reverse=True)
+        return sorted_results[:limit]
 
 def normalize_scores(scores: list[float]) -> list[float]:
     if not scores:
@@ -106,3 +138,6 @@ def weighted_search_command(query: str, alpha: float=0.5, limit: int=5) -> None:
 
 def hybrid_score(bm25_score, semantic_score, alpha=0.5):
     return alpha * bm25_score + (1 - alpha) * semantic_score
+
+def rrf_score(rank, k=60):
+    return 1 / (k + rank)

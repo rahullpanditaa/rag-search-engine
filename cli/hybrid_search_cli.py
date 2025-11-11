@@ -13,6 +13,11 @@ def main() -> None:
     weighted_search_parser.add_argument("query", type=str, help="Query to search for")
     weighted_search_parser.add_argument("--alpha", type=float, nargs='?', default=0.5, help="Constant used to dynamically control weighing between 2 scores")
     weighted_search_parser.add_argument("--limit", type=int, nargs='?', default=5, help="Number of results to return from the search")    
+    
+    rrf_search_parser = subparsers.add_parser("rrf-search", help="Search for query using RRF scores")
+    rrf_search_parser.add_argument("query", type=str, help="Query to search for")
+    rrf_search_parser.add_argument("--k", type=int, nargs='?', default=60, help="Tunable k parameter to control weight given to higher vs lower ranks")
+    rrf_search_parser.add_argument("--limit", type=int, nargs='?', default=5, help="Number of results to return")
     args = parser.parse_args()
 
     match args.command:
