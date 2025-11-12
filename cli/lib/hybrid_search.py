@@ -3,6 +3,8 @@ from .utils import get_movie_data_from_file
 from .inverted_index import InvertedIndex
 from .chunked_semantic_search import ChunkedSemanticSearch
 from .constants import INDEX_FILE_PATH
+from typing import Optional
+from .enhance_query import enhance_query
 
 class HybridSearch:
     def __init__(self, documents):
@@ -135,15 +137,30 @@ def weighted_search_command(query: str, alpha: float=0.5, limit: int=5) -> None:
         print(f"BM25: {result['bm25_score']:.4f}, Semantic: {result['semantic_score']:.4f}")
         print(f"{result['document']}")
 
-def rrf_search(query: str, k: int=60, limit: int=5) -> list[dict]:
+def rrf_search(query: str, k: int=60, limit: int=5, enhance: Optional[str]=None) -> dict:
     movies = get_movie_data_from_file()
     searcher = HybridSearch(documents=movies)
-    return searcher.rrf_search(query=query, k=k, limit=limit)
+    
+    enhanced_query = None
+    if enhance:
+        enhanced_query = enhance_query(query=query, method=enhance)
+    
+    return {
+        "enhanced_query": enhanced_query,
+        "enhance_method": enhance,
+        "query_used": query,
+        "results": searcher.rrf_search(query=query, k=k, limit=limit)
+    }
 
-def rrf_search_command(query: str, k: int=60, limit: int=5) -> None:
+def rrf_search_command(query: str, k: int=60, limit: int=5, enhance: Optional[str]=None) -> None:
     print(f"Searching for '{query}'. Generating upto {limit} results...")
-    results = rrf_search(query=query, k=k, limit=limit)
-    for i, result in enumerate(results, 1):
+    results = rrf_search(query=query, k=k, limit=limit, enhance= enhance)
+    
+    if results["enhanced_query"] is not None and results["enhanced_query"] != query:
+        print(f"Enhanced query ({enhance}): '{query}' -> '{results["enhanced_query"]}'\n")
+
+    
+    for i, result in enumerate(results["results"], 1):
         print(f"\n{i}. {result['title']}")
         print(f"RRF Score: {result['rrf_score']:.4f}")
         print(f"BM25 Rank: {result['bm25_rank']}, Semantic Rank: {result['semantic_rank']}")

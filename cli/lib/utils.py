@@ -1,13 +1,10 @@
 import string
 import json
-import os
 from nltk.stem import PorterStemmer
 from .constants import (
     STOPWORDS_FILE_PATH,
     MOVIES_DATA_PATH
 )
-
-from google import genai
 
 def remove_all_punctuation_lowercase(text: str) -> str:
     tt = str.maketrans("", "", string.punctuation)
@@ -54,34 +51,3 @@ def get_movie_data_from_file() -> list[dict]:
     with open(MOVIES_DATA_PATH, "r") as f:
         movies_dict = json.load(f)
     return movies_dict["movies"]
-
-def prompt_with_query_fix_spelling(query):
-    return f"""Fix any spelling errors in this movie search query.
-
-Only correct obvious typos. Don't change correctly spelled words.
-
-Query: "{query}"
-
-If no errors, return the original query.
-Corrected:""".strip()
-
-
-def enhance_query(query: str, method: str="spell") -> str:
-    api_key = os.environ.get("GEMINI_API_KEY")
-    client = genai.Client(api_key=api_key)
-    response = client.models.generate_content(
-        model = "gemini-2.0-flash-001",
-        contents=prompt_with_query_fix_spelling(query=query)
-    )
-    if "Corrected:" in response.text:
-        enhanced_query = response.text.split("Corrected:", 1)[1].strip()
-    else:
-        enhanced_query = response.text.strip()
-        
-    enhanced_query = enhanced_query.strip('"').strip("'")
-    if enhanced_query != query:
-        print(f"Enhanced query ({method}): '{query}' -> '{enhanced_query}'\n")
-        return enhanced_query
-    else:
-        return query
-    

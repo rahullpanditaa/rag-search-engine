@@ -4,11 +4,10 @@ from lib.hybrid_search import (
     weighted_search_command,
     rrf_search_command
 )
-from lib.utils import enhance_query
 from dotenv import load_dotenv
 
 def main() -> None:
-    load_dotenv()
+    # load_dotenv()
 
     parser = argparse.ArgumentParser(description="Hybrid Search CLI")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -25,7 +24,7 @@ def main() -> None:
     rrf_search_parser.add_argument("query", type=str, help="Query to search for")
     rrf_search_parser.add_argument("--k", type=int, nargs='?', default=60, help="Tunable k parameter to control weight given to higher vs lower ranks")
     rrf_search_parser.add_argument("--limit", type=int, nargs='?', default=5, help="Number of results to return")
-    rrf_search_parser.add_argument("--enhance", type=str, choices=["spell"], help="Query enhancement method")
+    rrf_search_parser.add_argument("--enhance", type=str, choices=["spell", "rewrite"], help="Query enhancement method")
     args = parser.parse_args()
 
     match args.command:
@@ -34,10 +33,7 @@ def main() -> None:
         case "weighted-search":
             weighted_search_command(query=args.query, alpha=args.alpha, limit=args.limit)
         case "rrf-search":
-            query = args.query
-            if args.enhance == "spell":
-                q = enhance_query(query=query, method="spell")
-            rrf_search_command(query=q, k=args.k, limit=args.limit)
+            rrf_search_command(query=args.query, k=args.k, limit=args.limit, enhance=args.enhance)
         case _:
             parser.print_help()
 
