@@ -179,9 +179,9 @@ def rrf_search_command(query: str, k: int=60, limit: int=5,
         print(f"Enhanced query ({enhance}): '{query}' -> '{results['enhanced_query']}'\n")
 
     if re_rank:
-        print(f"Reranking top {search_limit} results using {re_rank} method...")
+        print(f"Reranking top {limit} results using {re_rank} method...")
     print(f"Reciprocal Rank Fusion results for '{results['query_used']}' (k = {k}).")
-    for i, result in enumerate(results["results"][:search_limit], 1):
+    for i, result in enumerate(results["results"][:limit], 1):
         if re_rank == "individual":
             re_rank_score = result["re_rank_score"]
         print(f"\n{i}. {result['title']}")
@@ -194,14 +194,6 @@ def rrf_search_command(query: str, k: int=60, limit: int=5,
         print(f"RRF Score: {result['rrf_score']:.4f}")
         print(f"BM25 Rank: {result['bm25_rank']}, Semantic Rank: {result['semantic_rank']}")
         print(f"{result['document']}...")
-
-# def search_results_limit(re_rank: Optional[str], limit: int):
-#     match re_rank:
-#         case "individual":
-#             return limit * 5
-#         case
-#         case _:
-#             return limit
 
 def hybrid_score(bm25_score, semantic_score, alpha=0.5):
     return alpha * bm25_score + (1 - alpha) * semantic_score
