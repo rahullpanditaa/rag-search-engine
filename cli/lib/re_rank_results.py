@@ -36,7 +36,7 @@ def re_rank_cross_encoder(query: str, scores: list[dict]):
     # each [query, doc_title, doc_description]
     ce_scores = cross_encoder.predict(pairs)
 
-    movies_map = {doc["id"]: doc for doc in scores}
+    # movies_map = {doc["id"]: doc for doc in scores}
     results = []
     for i, doc in enumerate(scores):
         new_doc = doc.copy()
