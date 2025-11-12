@@ -145,11 +145,12 @@ def rrf_search(query: str, k: int=60, limit: int=5, enhance: Optional[str]=None)
     if enhance:
         enhanced_query = enhance_query(query=query, method=enhance)
     
+    query_to_use = enhanced_query if enhanced_query else query
     return {
         "enhanced_query": enhanced_query,
         "enhance_method": enhance,
-        "query_used": query,
-        "results": searcher.rrf_search(query=query, k=k, limit=limit)
+        "query_used": query_to_use,
+        "results": searcher.rrf_search(query=query_to_use, k=k, limit=limit)
     }
 
 def rrf_search_command(query: str, k: int=60, limit: int=5, enhance: Optional[str]=None) -> None:
@@ -157,7 +158,7 @@ def rrf_search_command(query: str, k: int=60, limit: int=5, enhance: Optional[st
     results = rrf_search(query=query, k=k, limit=limit, enhance= enhance)
     
     if results["enhanced_query"] is not None and results["enhanced_query"] != query:
-        print(f"Enhanced query ({enhance}): '{query}' -> '{results["enhanced_query"]}'\n")
+        print(f"Enhanced query ({enhance}): '{query}' -> '{results['enhanced_query']}'\n")
 
     
     for i, result in enumerate(results["results"], 1):

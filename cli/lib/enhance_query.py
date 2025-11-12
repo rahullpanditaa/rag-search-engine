@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
+if not api_key:
+    raise EnvironmentError("Missing GEMINI_API_KEY in .env file")
 client = genai.Client(api_key=api_key)
 model = "gemini-2.0-flash-001"
 
@@ -17,12 +19,9 @@ Query: "{query}"
 
 If no errors, return the original query.
 Corrected:"""
-    response = client.models.generate_content(
-        model=model,
-        contents=prompt
-    )
-    corrected_query = (response.text or "").strip().strip('"').strip("'")
-    return corrected_query if corrected_query else query
+    response = generate_respone(prompt=prompt)
+    enhanced_query = _clean_response(response)
+    return enhanced_query if enhanced_query else query
 
 def query_rewrite(query: str) -> str:
     prompt = f"""Rewrite this movie search query to be more specific and searchable.
@@ -43,13 +42,9 @@ Examples:
 - "scary movie with bear from few years ago" -> "bear horror movie 2015-2020"
 
 Rewritten query:"""
-    response = client.models.generate_content(
-        model=model,
-        contents=prompt
-    )
-    corrected_query = response.text or ""
-    corrected_query = corrected_query.strip().strip('"').strip("'")
-    return corrected_query if corrected_query else query
+    response = generate_respone(prompt=prompt)
+    enhanced_query = _clean_response(response)
+    return enhanced_query if enhanced_query else query
 
 def query_expand(query: str) -> str:
     prompt = f"""Expand this movie search query with related terms.
@@ -66,12 +61,9 @@ Examples:
 
 Query: "{query}"
 """
-    response = client.models.generate_content(
-        model=model,
-        contents=prompt
-    )
-    corrected_query = (response.text or "").strip().strip('"').strip("'").strip('*')
-    return corrected_query if corrected_query else query
+    response = generate_respone(prompt=prompt)
+    enhanced_query = _clean_response(response)
+    return enhanced_query if enhanced_query else query
 
 def enhance_query(query: str, method: str) -> str:
     match method:
@@ -84,9 +76,18 @@ def enhance_query(query: str, method: str) -> str:
         case _:
             return query
 
+def _clean_response(text: str) -> str:
+    return text.strip().strip('"').strip("'").strip('*').strip()
 
-
-
+def generate_respone(prompt: str) -> str:
+    try:
+        response = client.models.generate_content(
+            model=model, contents=prompt
+        )
+        return response.text or ""
+    except Exception as e:
+        print(f"Failed to enhance query via Gemini API: {e}")
+        return ""
 
 
 
