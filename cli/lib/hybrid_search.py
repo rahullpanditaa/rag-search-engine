@@ -151,7 +151,10 @@ def rrf_search(query: str, k: int=60,
     
     query_to_use = enhanced_query if enhanced_query else query
 
+    # initial rrf search (list of docs ranked by rrf score)
     results = searcher.rrf_search(query=query_to_use, k=k, limit=limit)
+    
+    # results ranked by re_rank method
     re_ranked_results = re_rank_scores(query=query_to_use, scores=results, method=re_rank)
 
     return {
@@ -166,30 +169,39 @@ def rrf_search_command(query: str, k: int=60, limit: int=5,
                        enhance: Optional[str]=None,
                        re_rank: Optional[str]=None) -> None:
     
-    print(f"Searching for '{query}'...")
-    original_limit = limit
-    limit = search_results_limit(re_rank=re_rank, limit=limit)
-    results = rrf_search(query=query, k=k, limit=limit, enhance= enhance, re_rank=re_rank)
+    search_limit = limit
+    if re_rank:
+        search_limit *= 5
+    # limit = search_results_limit(re_rank=re_rank, limit=limit)
+    results = rrf_search(query=query, k=k, limit=search_limit, enhance= enhance, re_rank=re_rank)
     
     if results["enhanced_query"] is not None and results["enhanced_query"] != query:
         print(f"Enhanced query ({enhance}): '{query}' -> '{results['enhanced_query']}'\n")
 
     if re_rank:
-        print(f"Reranking top {original_limit} results using {re_rank} method...")
+        print(f"Reranking top {search_limit} results using {re_rank} method...")
     print(f"Reciprocal Rank Fusion results for '{results['query_used']}' (k = {k}).")
-    for i, result in enumerate(results["results"][:original_limit], 1):
+    for i, result in enumerate(results["results"][:search_limit], 1):
+        if re_rank == "individual":
+            re_rank_score = result["re_rank_score"]
         print(f"\n{i}. {result['title']}")
-        print(f"Rerank Score: {result['re_rank_score']:.4f}/10")
+        if re_rank == "individual":
+            re_rank_score = result["re_rank_score"]
+            print(f"Rerank Score: {re_rank_score:.4f}/10")
+        if re_rank == "batch":
+            rank = result["rank"]
+            print(f"Rerank Rank: {rank}")
         print(f"RRF Score: {result['rrf_score']:.4f}")
         print(f"BM25 Rank: {result['bm25_rank']}, Semantic Rank: {result['semantic_rank']}")
         print(f"{result['document']}...")
 
-def search_results_limit(re_rank: Optional[str], limit: int):
-    match re_rank:
-        case "individual":
-            return limit * 5
-        case _:
-            return limit
+# def search_results_limit(re_rank: Optional[str], limit: int):
+#     match re_rank:
+#         case "individual":
+#             return limit * 5
+#         case
+#         case _:
+#             return limit
 
 def hybrid_score(bm25_score, semantic_score, alpha=0.5):
     return alpha * bm25_score + (1 - alpha) * semantic_score
