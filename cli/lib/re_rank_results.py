@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from google import genai
 from typing import Optional
 from .prompts import re_rank_individual_docs_prompt, re_rank_batch_prompt
+from sentence_transformers import CrossEncoder
 
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -19,8 +20,31 @@ def re_rank_scores(query: str, scores: list[dict], method: Optional[str]= None) 
             return re_rank_individual(query=query, scores=scores)
         case "batch":
             return re_rank_batch(query=query, scores=scores)
+        case "cross_encoder":
+            return re_rank_cross_encoder(query=query, scores=scores)
         case _:
             return scores
+
+def re_rank_cross_encoder(query: str, scores: list[dict]):
+    pairs = []
+    for doc in scores:
+        pairs.append([query, f"{doc.get('title', '')} - {doc.get('document', '')}"])
+
+    cross_encoder = CrossEncoder("cross-encoder/ms-marco-TinyBERT-L2-v2")
+    
+    # list of numbers, one for each pair i.e. one for
+    # each [query, doc_title, doc_description]
+    ce_scores = cross_encoder.predict(pairs)
+
+    movies_map = {doc["id"]: doc for doc in scores}
+    results = []
+    for i, doc in enumerate(scores):
+        new_doc = doc.copy()
+        new_doc["cross_encoder_score"] = float(ce_scores[i])
+        results.append(new_doc)
+    sorted_results = sorted(results, key=lambda d: d["cross_encoder_score"], reverse=True)
+    return sorted_results
+
 
 def re_rank_batch(query: str, scores: list[dict]):
     # for doc in scores:

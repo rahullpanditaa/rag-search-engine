@@ -179,19 +179,20 @@ def rrf_search_command(query: str, k: int=60, limit: int=5,
         print(f"Enhanced query ({enhance}): '{query}' -> '{results['enhanced_query']}'\n")
 
     if re_rank:
-        print(f"Reranking top {limit} results using {re_rank} method...")
-    print(f"Reciprocal Rank Fusion results for '{results['query_used']}' (k = {k}).")
+        print(f"Reranking top {limit} results using {re_rank} method...\n")
+    print(f"Reciprocal Rank Fusion results for '{results['query_used']}' (k = {k}):")
     for i, result in enumerate(results["results"][:limit], 1):
-        if re_rank == "individual":
-            re_rank_score = result["re_rank_score"]
         print(f"\n{i}. {result['title']}")
         if re_rank == "individual":
             re_rank_score = result["re_rank_score"]
-            print(f"Rerank Score: {re_rank_score:.4f}/10")
+            print(f"Rerank Score: {re_rank_score:.3f}/10")
         if re_rank == "batch":
             rank = result["rank"]
             print(f"Rerank Rank: {rank}")
-        print(f"RRF Score: {result['rrf_score']:.4f}")
+        if re_rank == "cross_encoder":
+            cross_score = result["cross_encoder_score"]
+            print(f"Cross Encoder Score: {cross_score:.3f}")
+        print(f"RRF Score: {result['rrf_score']:.3f}")
         print(f"BM25 Rank: {result['bm25_rank']}, Semantic Rank: {result['semantic_rank']}")
         print(f"{result['document']}...")
 

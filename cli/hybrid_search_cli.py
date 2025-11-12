@@ -25,7 +25,7 @@ def main() -> None:
     rrf_search_parser.add_argument("--k", type=int, nargs='?', default=60, help="Tunable k parameter to control weight given to higher vs lower ranks")
     rrf_search_parser.add_argument("--limit", type=int, nargs='?', default=5, help="Number of results to return")
     rrf_search_parser.add_argument("--enhance", type=str, choices=["spell", "rewrite", "expand"], help="Query enhancement method")
-    rrf_search_parser.add_argument("--rerank-method", type=str,choices=["individual", "batch"], help="Re-ranking search results" )
+    rrf_search_parser.add_argument("--rerank-method", type=str,choices=["individual", "batch", "cross_encoder"], help="Re-ranking search results" )
     
     args = parser.parse_args()
 
