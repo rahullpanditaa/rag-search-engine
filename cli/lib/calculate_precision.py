@@ -1,0 +1,37 @@
+import json
+from .constants import GOLDEN_DATASET_FILE_PATH
+from .hybrid_search import HybridSearch
+from .utils import get_movie_data_from_file
+
+def calculate_precision(k: int=5):
+    dataset = json.load(GOLDEN_DATASET_FILE_PATH)  
+
+    # list of {query, relevant_docs list}
+    test_cases = dataset["test_cases"]
+
+    movies = get_movie_data_from_file()
+    searcher = HybridSearch(documents=movies)  
+    
+    results = []
+    for test_case in test_cases:
+        query = test_case["query"]
+        retrieved_docs = searcher.rrf_search(query=query, k=60, limit=k)
+        precision_score = calculate_precision_score(
+            retrieved=retrieved_docs, 
+            relevant=test_case["relevant_docs"])
+        results.append({
+            "query": query,
+            "precision": f"{precision_score:.4f}",
+            "retrieved": ", ".join([doc["title"] for doc in retrieved_docs]),
+            "relevant": ", ".join([title for title in test_cases["relevant_docs"]])
+
+        })
+
+def calculate_precision_score(retrieved: list, relevant: list) -> float:
+    relevant_retrieved = 0
+    for doc in retrieved:
+        if doc["title"] in relevant:
+            relevant_retrieved += 1
+    
+    score = relevant_retrieved / len(retrieved)
+    return score

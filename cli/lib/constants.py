@@ -3,6 +3,7 @@ from pathlib import Path
 DATA_DIR_PATH = (Path(__file__).resolve().parent.parent.parent).resolve() / "data" 
 MOVIES_DATA_PATH = DATA_DIR_PATH / "movies.json"
 STOPWORDS_FILE_PATH = DATA_DIR_PATH / "stopwords.txt"
+GOLDEN_DATASET_FILE_PATH = DATA_DIR_PATH / "golden_dataset.json"
 
 CACHE_DIR_PATH = Path(__file__).resolve().parent.parent.parent / "cache"
 # Inverted Index 
@@ -26,3 +27,5 @@ DEFAULT_CHUNK_SIZE = 200
 DEFAULT_CHUNK_OVERLAP = 1
 DEFAULT_SEMANTIC_CHUNK_SIZE = 4
 SCORE_PRECISION = 3
+
+
