@@ -5,6 +5,7 @@ from .chunked_semantic_search import ChunkedSemanticSearch
 from .constants import INDEX_FILE_PATH
 from typing import Optional
 from .enhance_query import enhance_query
+from .re_rank_results import re_rank_scores
 
 class HybridSearch:
     def __init__(self, documents):
@@ -65,10 +66,10 @@ class HybridSearch:
         return sorted_results[:limit]
 
     def rrf_search(self, query, k, limit=10) -> list[dict]:
-        bm25_results = self._bm25_search(query=query, limit=limit*500)
+        bm25_results = self._bm25_search(query=query, limit=limit)
         bm25_ranks = [doc_id for doc_id, _ in bm25_results]
 
-        semantic_results = self.semantic_search.search_chunks(query=query, limit=limit*500)
+        semantic_results = self.semantic_search.search_chunks(query=query, limit=limit)
         semantic_ranks = [result["id"] for result in semantic_results]
         # all doc ids in both results
         all_doc_ids = set(bm25_ranks) | set(semantic_ranks)
@@ -137,7 +138,10 @@ def weighted_search_command(query: str, alpha: float=0.5, limit: int=5) -> None:
         print(f"BM25: {result['bm25_score']:.4f}, Semantic: {result['semantic_score']:.4f}")
         print(f"{result['document']}")
 
-def rrf_search(query: str, k: int=60, limit: int=5, enhance: Optional[str]=None) -> dict:
+def rrf_search(query: str, k: int=60, 
+               limit: int=5, 
+               enhance: Optional[str]=None,
+               re_rank: Optional[str]= None) -> dict:
     movies = get_movie_data_from_file()
     searcher = HybridSearch(documents=movies)
     
@@ -146,27 +150,46 @@ def rrf_search(query: str, k: int=60, limit: int=5, enhance: Optional[str]=None)
         enhanced_query = enhance_query(query=query, method=enhance)
     
     query_to_use = enhanced_query if enhanced_query else query
+
+    results = searcher.rrf_search(query=query_to_use, k=k, limit=limit)
+    re_ranked_results = re_rank_scores(query=query_to_use, scores=results, method=re_rank)
+
     return {
         "enhanced_query": enhanced_query,
         "enhance_method": enhance,
         "query_used": query_to_use,
-        "results": searcher.rrf_search(query=query_to_use, k=k, limit=limit)
+        "results": re_ranked_results
     }
 
-def rrf_search_command(query: str, k: int=60, limit: int=5, enhance: Optional[str]=None) -> None:
-    print(f"Searching for '{query}'. Generating upto {limit} results...")
-    results = rrf_search(query=query, k=k, limit=limit, enhance= enhance)
+
+def rrf_search_command(query: str, k: int=60, limit: int=5, 
+                       enhance: Optional[str]=None,
+                       re_rank: Optional[str]=None) -> None:
+    
+    print(f"Searching for '{query}'...")
+    original_limit = limit
+    limit = search_results_limit(re_rank=re_rank, limit=limit)
+    results = rrf_search(query=query, k=k, limit=limit, enhance= enhance, re_rank=re_rank)
     
     if results["enhanced_query"] is not None and results["enhanced_query"] != query:
         print(f"Enhanced query ({enhance}): '{query}' -> '{results['enhanced_query']}'\n")
 
-    
-    for i, result in enumerate(results["results"], 1):
+    if re_rank:
+        print(f"Reranking top {original_limit} results using {re_rank} method...")
+    print(f"Reciprocal Rank Fusion results for '{results['query_used']}' (k = {k}).")
+    for i, result in enumerate(results["results"][:original_limit], 1):
         print(f"\n{i}. {result['title']}")
+        print(f"Rerank Score: {result['re_rank_score']:.4f}/10")
         print(f"RRF Score: {result['rrf_score']:.4f}")
         print(f"BM25 Rank: {result['bm25_rank']}, Semantic Rank: {result['semantic_rank']}")
         print(f"{result['document']}...")
 
+def search_results_limit(re_rank: Optional[str], limit: int):
+    match re_rank:
+        case "individual":
+            return limit * 5
+        case _:
+            return limit
 
 def hybrid_score(bm25_score, semantic_score, alpha=0.5):
     return alpha * bm25_score + (1 - alpha) * semantic_score
