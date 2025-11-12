@@ -1,4 +1,5 @@
 import argparse
+from lib.calculate_precision import evaluation_command
 
 
 def main():
@@ -14,6 +15,7 @@ def main():
     limit = args.limit
 
     # run evaluation logic here
+    evaluation_command(k=limit)
 
 
 if __name__ == "__main__":
