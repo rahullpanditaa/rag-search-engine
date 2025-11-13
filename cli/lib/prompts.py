@@ -53,4 +53,17 @@ Return ONLY the scores in the same order you were given the documents. Return a 
 
 [2, 0, 3, 2, 0, 1]"""
     return prompt
-    
+
+def rag_response_prompt(query: str, docs: list[dict]):
+    formatted_docs = "\n".join([
+        f"- {doc['title']}: {doc['document']}" for doc in docs
+    ])
+    prompt = f"""Answer the question or provide information based on the provided documents. This should be tailored to Hoopla users. Hoopla is a movie streaming service.
+
+Query: {query}
+
+Documents:
+{formatted_docs}
+
+Provide a comprehensive answer that addresses the query:"""
+    return prompt

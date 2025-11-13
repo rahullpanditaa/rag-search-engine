@@ -67,21 +67,22 @@ class HybridSearch:
         sorted_results = sorted(doc_scores.values(), key=lambda d: d["hybrid_score"], reverse=True)
         return sorted_results[:limit]
 
-    def rrf_search(self, query, k, limit=10) -> list[dict]:
-        bm25_results = self._bm25_search(query=query, limit=limit)
+    def rrf_search(self, query, k: int=60, limit=10) -> list[dict]:
+        bm25_results = self._bm25_search(query=query, limit=limit*100)
         bm25_ranks = [doc_id for doc_id, _ in bm25_results]
 
-        semantic_results = self.semantic_search.search_chunks(query=query, limit=limit)
+        semantic_results = self.semantic_search.search_chunks(query=query, limit=limit*100)
         semantic_ranks = [result["id"] for result in semantic_results]
         # all doc ids in both results
-        all_doc_ids = set(bm25_ranks) | set(semantic_ranks)
+        # all_doc_ids = set(bm25_ranks) | set(semantic_ranks)
+        all_doc_ids = list(dict.fromkeys(bm25_ranks + semantic_ranks))
         document_map = {doc["id"]: doc for doc in self.documents}
 
         doc_scores_map = {}
 
         for doc_id in all_doc_ids:
-            bm25_rank = bm25_ranks.index(doc_id) + 1 if doc_id in bm25_ranks else None
-            semantic_rank = semantic_ranks.index(doc_id) + 1 if doc_id in semantic_ranks else None
+            bm25_rank = bm25_ranks.index(doc_id) + 1 if doc_id in bm25_ranks else len(bm25_ranks) + 1
+            semantic_rank = semantic_ranks.index(doc_id) + 1 if doc_id in semantic_ranks else len(semantic_ranks) + 1
 
             rrf = 0.0
             if bm25_rank is not None:
