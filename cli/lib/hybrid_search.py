@@ -6,6 +6,8 @@ from .constants import INDEX_FILE_PATH
 from typing import Optional
 from .enhance_query import enhance_query
 from .re_rank_results import re_rank_scores
+from .prompts import llm_evaluation_prompt
+from .api_calls import generate_response_evaluate_results
 
 class HybridSearch:
     def __init__(self, documents):
@@ -47,7 +49,7 @@ class HybridSearch:
         for i, doc_id in enumerate(all_doc_ids):
             bm25_score = normalized_bm25_scores[i]
             semantic_score = normalized_semantic_scores[i]
-            hybrid = hybrid_score(bm25_score=bm25_score,
+            hybrid = _hybrid_score(bm25_score=bm25_score,
                                   semantic_score=semantic_score,
                                   alpha=alpha)
             
@@ -83,9 +85,9 @@ class HybridSearch:
 
             rrf = 0.0
             if bm25_rank is not None:
-                rrf += rrf_score(rank=bm25_rank, k=k)
+                rrf += _rrf_score(rank=bm25_rank, k=k)
             if semantic_rank is not None:
-                rrf += rrf_score(rank=semantic_rank, k=k)
+                rrf += _rrf_score(rank=semantic_rank, k=k)
             
             doc = document_map.get(doc_id)
             if doc:
@@ -177,7 +179,8 @@ def rrf_search(query: str, k: int=60,
 
 def rrf_search_command(query: str, k: int=60, limit: int=5, 
                        enhance: Optional[str]=None,
-                       re_rank: Optional[str]=None) -> None:    
+                       re_rank: Optional[str]=None,
+                       evaluate: Optional[bool]=None) -> None:    
     search_limit = limit
     if re_rank:
         search_limit *= 5
@@ -187,6 +190,7 @@ def rrf_search_command(query: str, k: int=60, limit: int=5,
     if re_rank:
         print(f"Reranking top {limit} results using {re_rank} method...\n")
     print(f"Reciprocal Rank Fusion results for '{results['query_used']}' (k = {k}):")
+    print()
     for i, result in enumerate(results["results"][:limit], 1):
         print(f"\n{i}. {result['title']}")
         if re_rank == "individual":
@@ -201,9 +205,28 @@ def rrf_search_command(query: str, k: int=60, limit: int=5,
         print(f"RRF Score: {result['rrf_score']:.3f}")
         print(f"BM25 Rank: {result['bm25_rank']}, Semantic Rank: {result['semantic_rank']}")
         print(f"{result['document']}...")
+        print()
+    
+    if evaluate:
+        _evaluate_results(query=results["query_used"], results=results["results"][:limit])
 
-def hybrid_score(bm25_score, semantic_score, alpha=0.5):
+def _evaluate_results(query: str, results: list[dict]) -> None:
+    prompt = llm_evaluation_prompt(query=query, results=results)
+    scores = generate_response_evaluate_results(prompt=prompt)
+
+    evaluation_results = []
+    for i, score in enumerate(scores):
+        evaluation_results.append({
+            "title": results[i]['title'],
+            "score": score
+        })
+        # print(f"{i+1}. {results[i]['title']}: {score}/3")
+    sorted_eval_results = sorted(evaluation_results, key=lambda d: d['score'], reverse=True)
+    for i, eval_result in enumerate(sorted_eval_results, 1):
+        print(f"{i}. {eval_result['title']}: {eval_result['score']}/3")
+
+def _hybrid_score(bm25_score, semantic_score, alpha=0.5):
     return alpha * bm25_score + (1 - alpha) * semantic_score
 
-def rrf_score(rank, k=60):
+def _rrf_score(rank, k=60):
     return 1 / (k + rank)
