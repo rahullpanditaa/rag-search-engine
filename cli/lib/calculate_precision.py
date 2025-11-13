@@ -24,10 +24,12 @@ def calculate_evaluation_scores(k: int=5):
         recall_score = _calculate_recall(
             retrieved=retrieved_docs,
             relevant=test_case["relevant_docs"])
+        f1_score = _calculate_f1_score(precision=precision_score, recall=recall_score)
         results.append({
             "query": query,
             "precision": precision_score,
             "recall": recall_score,
+            "f1_score": f1_score,
             "retrieved": ", ".join([doc["title"] for doc in retrieved_docs]),
             "relevant": ", ".join([title for title in test_case["relevant_docs"]])
 
@@ -42,6 +44,7 @@ def evaluation_command(k: int=5):
         print(f"- Query: {result['query']}")
         print(f"  - Precision@{k}: {result['precision']:.4f}")
         print(f"  - Recall@{k}: {result['recall']:.4f}")
+        print(f"  - F1 Score: {result['f1_score']:.4f}")
         print(f"  - Retrieved: {result['retrieved']}")
         print(f"  - Relevant: {result['relevant']}")
         print()
@@ -67,3 +70,14 @@ def _calculate_recall(retrieved: list, relevant: list) -> float:
     
     score = relevant_docs_retrieved / len(relevant) if relevant else 0.0
     return score
+
+# f1 = 2 * (precision * recall) / (precision + recall)
+def _calculate_f1_score(precision: float, recall: float) -> float:
+    if precision + recall == 0:
+        return 0.0
+    return 2 * (precision * recall) / (precision + recall)
+
+# Precision = How much of what you returned is correct
+# Recall = How much of the correct stuff you actually found
+# F1 Score = Balanced measure that forces you to improve both
+# Useful when: Precision and recall matter equally
