@@ -2,7 +2,8 @@ import argparse
 from lib.augmented_generation import (
     rag_command, 
     summarize_command,
-    citations_command
+    citations_command,
+    question_command
 )
 
 
@@ -23,6 +24,9 @@ def main():
     citations_parser.add_argument("query", type=str, help="Search query")
     citations_parser.add_argument("--limit", type=int, nargs='?', default=5, help="Number of results to return")
     
+    question_parser = subparsers.add_parser("question", help="Ask the user's question based on query")
+    question_parser.add_argument("query", type=str, help="Search query")
+    question_parser.add_argument("--limit", type=int, nargs='?', default=5, help="Number of results to return")
     args = parser.parse_args()
 
     match args.command:
@@ -33,6 +37,8 @@ def main():
             summarize_command(query=args.query, limit=args.limit)
         case "citations":
             citations_command(query=args.query, limit=args.limit)
+        case "question":
+            question_command(query=args.query, limit=args.limit)
         case _:
             parser.print_help()
 

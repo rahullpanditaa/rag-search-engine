@@ -109,3 +109,25 @@ Instructions:
 
 Answer:"""
     return prompt
+
+def rag_questions_prompt(query: str, docs: list[dict]) -> str:
+    movies = [f"{i}. {doc['title']} - {doc['document'][:200]}"
+              for i, doc in enumerate(docs)]
+    formatted = "\n".join(movies)
+    prompt = f"""Answer the user's question based on the provided movies that are available on Hoopla.
+
+This should be tailored to Hoopla users. Hoopla is a movie streaming service.
+
+Question: {query}
+
+Documents:
+{formatted}
+
+Instructions:
+- Answer questions directly and concisely
+- Be casual and conversational
+- Don't be cringe or hype-y
+- Talk like a normal person would in a chat conversation
+
+Answer:"""
+    return prompt

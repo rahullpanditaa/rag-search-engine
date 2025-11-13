@@ -7,7 +7,8 @@ from google import genai
 from .prompts import (
     rag_response_prompt, 
     rag_summarize_prompt,
-    rag_citations_prompt
+    rag_citations_prompt,
+    rag_questions_prompt
 )
 
 load_dotenv()
@@ -31,7 +32,7 @@ def rag_command(query : str) -> None:
         print(f"  - {doc['title']}")
     
     print("\nRAG Response:")
-    print(f"{rag_response if rag_response else 'Unable to generate response from LLM'}")
+    rag_response if rag_response else 'Unable to generate response from LLM'
 
 
 def generate_response_to_query(prompt: str, max_retries: int=5) -> str:
@@ -66,7 +67,7 @@ def summarize_command(query: str, limit: int=5):
         print(f"  - {doc['title']}")
     
     print("\nLLM Summary:")
-    print(f"{rag_summary if rag_summary else 'Unable to summarize results via LLM.'}")
+    rag_summary if rag_summary else 'Unable to summarize results via LLM.'
 
 def citations(query: str, limit: int=5):
     movies = get_movie_data_from_file()
@@ -84,4 +85,23 @@ def citations_command(query: str, limit: int=5):
         print(f"  - {doc['title']}")
 
     print("\nLLM Answer:")
-    print(f"{rag_ans if rag_ans else 'Unable to generate answer along with citations'}")
+    print(rag_ans if rag_ans else 'Unable to answer user query')
+
+def question(query: str, limit: int=5):
+    movies = get_movie_data_from_file()
+    searcher = HybridSearch(documents=movies)
+    results = searcher.rrf_search(query=query, limit=limit)
+    prompt = rag_questions_prompt(query=query, docs=results)
+    rag_ans_question = generate_response_to_query(prompt=prompt)
+    return rag_ans_question, results
+
+def question_command(query: str, limit: int=5) -> None:
+    rag_ans, docs = question(query=query, limit=limit)
+
+    print("Search Results:")
+    for doc in docs:
+        print(f"  - {doc['title']}")
+    
+    print("\nAnswer:")
+    print(rag_ans if rag_ans else 'Unable to answer user query')
+
