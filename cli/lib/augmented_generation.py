@@ -4,7 +4,7 @@ from .utils import get_movie_data_from_file
 from .hybrid_search import HybridSearch
 from dotenv import load_dotenv
 from google import genai
-from .prompts import rag_response_prompt
+from .prompts import rag_response_prompt, rag_summarize_prompt
 
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -44,3 +44,22 @@ def generate_response_to_query(prompt: str, max_retries: int=5) -> str:
                 return ""
             time.sleep(time_delay)
             time_delay *= 2
+
+
+def summarize(query: str, limit: int = 5):
+    movies = get_movie_data_from_file()
+    searcher = HybridSearch(documents=movies)
+    results = searcher.rrf_search(query=query, limit=limit)
+    prompt = rag_summarize_prompt(query=query, docs=results)
+    rag_summary = generate_response_to_query(prompt=prompt)
+    return rag_summary, results
+
+def summarize_command(query: str, limit: int=5):
+    rag_summary, docs = summarize(query=query, limit=limit)
+
+    print("Search Results:")
+    for doc in docs:
+        print(f"  - {doc['title']}")
+    
+    print("\nLLM Summary:")
+    print(f"{rag_summary if rag_summary else 'Unable to summarize results via LLM.'}")
