@@ -144,18 +144,28 @@ def rrf_search(query: str, k: int=60,
                re_rank: Optional[str]= None) -> dict:
     movies = get_movie_data_from_file()
     searcher = HybridSearch(documents=movies)
+
+    print(f"Original query: {query}")
     
     enhanced_query = None
     if enhance:
         enhanced_query = enhance_query(query=query, method=enhance)
     
     query_to_use = enhanced_query if enhanced_query else query
+    if query_to_use == enhanced_query:
+        print(f"Enhanced query ({enhance}): '{query}' -> '{query_to_use}'")
 
     # initial rrf search (list of docs ranked by rrf score)
     results = searcher.rrf_search(query=query_to_use, k=k, limit=limit)
+    print(f"Initial RRF search before re-ranking (list of docs ranked by RRF score):")
+    for i, doc in enumerate(results, 1):
+        print(f"{i}. Movie: {doc['title']}, RRF Score: {doc['rrf_score']}")
     
     # results ranked by re_rank method
     re_ranked_results = re_rank_scores(query=query_to_use, scores=results, method=re_rank)
+    print(f"Docs/Movies re-ranked by '{re_rank}' method:")
+    for i, doc in enumerate(re_ranked_results, 1):
+        print(f"{i}. {doc['title']}")
 
     return {
         "enhanced_query": enhanced_query,
@@ -167,16 +177,12 @@ def rrf_search(query: str, k: int=60,
 
 def rrf_search_command(query: str, k: int=60, limit: int=5, 
                        enhance: Optional[str]=None,
-                       re_rank: Optional[str]=None) -> None:
-    
+                       re_rank: Optional[str]=None) -> None:    
     search_limit = limit
     if re_rank:
         search_limit *= 5
-    # limit = search_results_limit(re_rank=re_rank, limit=limit)
-    results = rrf_search(query=query, k=k, limit=search_limit, enhance= enhance, re_rank=re_rank)
-    
-    if results["enhanced_query"] is not None and results["enhanced_query"] != query:
-        print(f"Enhanced query ({enhance}): '{query}' -> '{results['enhanced_query']}'\n")
+
+    results = rrf_search(query=query, k=k, limit=search_limit, enhance= enhance, re_rank=re_rank)   
 
     if re_rank:
         print(f"Reranking top {limit} results using {re_rank} method...\n")

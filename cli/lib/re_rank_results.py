@@ -63,8 +63,6 @@ def re_rank_batch(query: str, scores: list[dict]):
         results.append(new_doc)
     return results   
 
-
-
 def generate_response_batch(prompt: str, max_retries: int=5) -> list[int]:
     time_delay = 5.0
     for attempt in range(max_retries):
@@ -77,9 +75,6 @@ def generate_response_batch(prompt: str, max_retries: int=5) -> list[int]:
                 return []
             time.sleep(time_delay + 0.5)
             time_delay *= 2
-            
-
-
 
 def re_rank_individual(query: str, scores: list[dict]) -> list[dict]:
     # doc -> {id, title, document, bm25_rank, semantic_rank, rrf_score}
