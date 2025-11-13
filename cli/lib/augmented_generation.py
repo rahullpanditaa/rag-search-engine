@@ -4,7 +4,11 @@ from .utils import get_movie_data_from_file
 from .hybrid_search import HybridSearch
 from dotenv import load_dotenv
 from google import genai
-from .prompts import rag_response_prompt, rag_summarize_prompt
+from .prompts import (
+    rag_response_prompt, 
+    rag_summarize_prompt,
+    rag_citations_prompt
+)
 
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -63,3 +67,21 @@ def summarize_command(query: str, limit: int=5):
     
     print("\nLLM Summary:")
     print(f"{rag_summary if rag_summary else 'Unable to summarize results via LLM.'}")
+
+def citations(query: str, limit: int=5):
+    movies = get_movie_data_from_file()
+    searcher = HybridSearch(documents=movies)
+    results = searcher.rrf_search(query=query, limit=10)
+    prompt = rag_citations_prompt(query=query, docs=results)
+    rag_ans_with_citations = generate_response_to_query(prompt=prompt)
+    return rag_ans_with_citations, results
+
+def citations_command(query: str, limit: int=5):
+    rag_ans, docs = citations(query=query, limit=limit)
+
+    print("Search Results:")
+    for doc in docs:
+        print(f"  - {doc['title']}")
+
+    print("\nLLM Answer:")
+    print(f"{rag_ans if rag_ans else 'Unable to generate answer along with citations'}")
