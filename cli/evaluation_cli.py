@@ -14,7 +14,6 @@ def main():
     args = parser.parse_args()
     limit = args.limit
 
-    # run evaluation logic here
     evaluation_command(k=limit)
 
 
