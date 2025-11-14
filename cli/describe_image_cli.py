@@ -9,3 +9,5 @@ def main() -> None:
     args = parser.parse_args()
     describe_image(path=args.image, query=args.query)
 
+if __name__ == "__main__":
+    main()

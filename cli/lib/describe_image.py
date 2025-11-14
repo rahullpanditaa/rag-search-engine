@@ -1,6 +1,5 @@
 import os
 import mimetypes
-import types
 from pathlib import Path
 from dotenv import load_dotenv
 from google import genai
