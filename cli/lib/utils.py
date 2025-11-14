@@ -51,3 +51,5 @@ def get_movie_data_from_file() -> list[dict]:
     with open(MOVIES_DATA_PATH, "r") as f:
         movies_dict = json.load(f)
     return movies_dict["movies"]
+
+# def _gemini_client_setup():

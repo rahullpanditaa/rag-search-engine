@@ -7,8 +7,6 @@ from lib.hybrid_search import (
 from dotenv import load_dotenv
 
 def main() -> None:
-    # load_dotenv()
-
     parser = argparse.ArgumentParser(description="Hybrid Search CLI")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
