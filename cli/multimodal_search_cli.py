@@ -1,5 +1,8 @@
 import argparse
-from lib.multimodal_search import verify_image_embedding
+from lib.multimodal_search import (
+    verify_image_embedding_command,
+    image_search_command
+)
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Multimodal Search CLI")
@@ -8,12 +11,15 @@ def main() -> None:
     verify_img_embedding_parser = subparsers.add_parser("verify_image_embedding", help="Genrate a vector embedding for given image")
     verify_img_embedding_parser.add_argument("--image", type=str, help="Image path", required=True)
     
-
+    image_search_parser = subparsers.add_parser("image_search", help="Compute similarity scores between img and all docs")
+    image_search_parser.add_argument("--image", type=str, help="Image path", required=True)
     args = parser.parse_args()
     
     match args.command:
         case "verify_image_embedding":
-            verify_image_embedding(img_path=args.image)
+            verify_image_embedding_command(img_path=args.image)
+        case "image_search":
+            image_search_command(image_path=args.image)
         case _:
             parser.print_help()
 

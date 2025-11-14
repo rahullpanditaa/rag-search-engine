@@ -43,14 +43,14 @@ def verify_image_embedding_command(img_path):
     img_embedding = searcher.embed_image(image=img)
     print(f"Embedding shape: {img_embedding.shape[0]} dimensions")
 
-def image_search(image_path: str):
+def _image_search(image_path: str):
     movies = get_movie_data_from_file()
     searcher = MultimodalSearch(documents=movies)
     results = searcher.search_with_image(image_path)
     return results
 
 def image_search_command(image_path: str):
-    results = image_search(image_path=image_path)
+    results = _image_search(image_path=image_path)
 
     for i, result in enumerate(results, 1):
         print(f"{i}. {result['title']} (similarity: {result['similarity_score']})")
