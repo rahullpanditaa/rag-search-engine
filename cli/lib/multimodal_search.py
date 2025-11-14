@@ -1,7 +1,9 @@
+import numpy as np
 from PIL import Image
 from sentence_transformers import SentenceTransformer, util
 from pathlib import Path
 from .utils import get_movie_data_from_file
+from .constants import MOVIE_EMBEDDINGS_PATH
 
 class MultimodalSearch():
     def __init__(self, documents: list[dict], model_name="clip-ViT-B-32"):
@@ -9,7 +11,19 @@ class MultimodalSearch():
         self.documents = documents
         self.texts = [f"{doc['title']}: {doc['description']}" 
                       for doc in documents]
+        self.text_embeddings = None
+
+    def build_text_embeddings(self):
         self.text_embeddings = self.model.encode(self.texts, show_progress_bar=True)
+        MOVIE_EMBEDDINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        np.save(MOVIE_EMBEDDINGS_PATH, self.text_embeddings)
+
+    def load_or_create_text_embeddings(self):
+        if MOVIE_EMBEDDINGS_PATH.exists():
+            self.text_embeddings = np.load(MOVIE_EMBEDDINGS_PATH, allow_pickle=True)
+            return
+        self.build_text_embeddings()
+
 
     def embed_image(self, image: str):
         img_path = Path(image).resolve()
@@ -24,6 +38,7 @@ class MultimodalSearch():
 
         results = []
 
+        self.load_or_create_text_embeddings()
         for i, txt_emb in enumerate(self.text_embeddings):
             cosine_sim = util.cos_sim(img_embedding, txt_emb).item()
             results.append({
@@ -38,9 +53,9 @@ class MultimodalSearch():
     
 def verify_image_embedding_command(img_path):
     img = Path(img_path).resolve()
-
-    searcher = MultimodalSearch()
-    img_embedding = searcher.embed_image(image=img)
+    movies = get_movie_data_from_file()
+    searcher = MultimodalSearch(documents=movies)
+    img_embedding = searcher.embed_image(image=str(img))
     print(f"Embedding shape: {img_embedding.shape[0]} dimensions")
 
 def _image_search(image_path: str):
@@ -53,15 +68,6 @@ def image_search_command(image_path: str):
     results = _image_search(image_path=image_path)
 
     for i, result in enumerate(results, 1):
-        print(f"{i}. {result['title']} (similarity: {result['similarity_score']})")
-        print(f"{result['description']}\n")
+        print(f"{i}. {result['title']} (similarity: {result['similarity_score']:.4f})")
+        print(f"{result['description'][:300]}\n")
 
-# def cosine_similarity(vec1, vec2):
-#     dot_product = np.dot(vec1, vec2)
-#     norm1 = np.linalg.norm(vec1)
-#     norm2 = np.linalg.norm(vec2)
-
-#     if norm1 == 0 or norm2 == 0:
-#         return 0.0
-    
-#     return dot_product / (norm1 * norm2)
