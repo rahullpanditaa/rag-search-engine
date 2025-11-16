@@ -1,26 +1,35 @@
-from lib.semantic_search.logic import SemanticSearch, cosine_similarity
-from pathlib import Path
-from lib.utils import get_movie_data_from_file
+import re
 import numpy as np
 import json
-import re
-from .constants import (
+from lib.constants import (
     CACHE_DIR_PATH,
     CHUNK_EMBEDDINGS_PATH, 
     CHUNK_METADATA_PATH, 
     DEFAULT_SEMANTIC_CHUNK_SIZE, DEFAULT_CHUNK_OVERLAP,
     SCORE_PRECISION
 )
-# from .semantic_search import cosine_similarity
+from lib.semantic_search.logic import SemanticSearch, cosine_similarity
 
 class ChunkedSemanticSearch(SemanticSearch):
     def __init__(self, model_name="all-MiniLM-L6-v2") -> None:
         super().__init__(model_name)
         self.chunk_embeddings = None
         self.chunk_metadata = None
-        self.list_of_all_chunks = []
 
     def build_chunk_embeddings(self, documents: list[dict]) -> np.ndarray:
+        """
+        Iterate over every single document in ```documents``` attribute which contains a ```list[dict]```, each dict 
+        havings keys ```id, title, description```.
+
+        1. Populate the ```document_map``` attribute. 
+        2. For every document, split the description text for doc into a list of chunks.
+        3. For every chunk in a doc's list of chunks, append the chunk to a list containing all chunks from all docs.
+        4. Then, append to the ```chunk_metadata``` attribute a ```dict``` containing metadata about the current chunk.
+        5. Encode (create embeddings vector list) for the list containing all chunks, store in ```chunk_embeddings```attribute.
+        6. Store the ```list[dict]``` of **chunks_metadata** in ```chunks_metadata``` attribute.
+        7. Create **cache/** directory in project root if it does not exist.
+        8. Save the ```chunk_embeddings``` to a **.npy** file, ```chunks_metadata``` to a **.json file** in the **cache/** directory.
+        """
         # documents -> list of {movie_id, title, description}
         self.documents = documents
         all_chunks = []
@@ -31,15 +40,10 @@ class ChunkedSemanticSearch(SemanticSearch):
             if not doc["description"].strip():
                 continue
             # split the description text for doc/movie into chunks
-            doc_description_chunks = semantic_chunk_command(text=doc["description"], max_chunk_size=DEFAULT_SEMANTIC_CHUNK_SIZE, 
+            doc_description_chunks = semantic_chunk(text=doc["description"], max_chunk_size=DEFAULT_SEMANTIC_CHUNK_SIZE, 
                                                             overlap=DEFAULT_CHUNK_OVERLAP)
             for chunk_index, description_chunk in enumerate(doc_description_chunks):
                 all_chunks.append(description_chunk)
-                self.list_of_all_chunks.append({
-                    "movie_doc_index" : doc["id"],
-                    "chunk_index_inside_doc": chunk_index,
-                    "chunk_text": description_chunk
-                })
                 chunks_metadata.append(
                     {
                         "movie_idx": doc["id"],
@@ -58,6 +62,10 @@ class ChunkedSemanticSearch(SemanticSearch):
         return self.chunk_embeddings
     
     def load_or_create_chunk_embeddings(self, documents: list[dict]) -> np.ndarray:
+        """
+        Populate the ```document_map``` attribute. Load precomputed **chunk embeddings** and **chunks metadata** into 
+        the ```chunk_embeddings``` and ```chunk_metadata``` attributes respectively. If the data does not exist,
+        call ```build_chunk_embeddings(document)``` to build embeddings."""
         self.documents = documents
         self.document_map = {}
         for doc in self.documents:
@@ -72,6 +80,12 @@ class ChunkedSemanticSearch(SemanticSearch):
         return self.build_chunk_embeddings(documents=documents)
     
     def search_chunks(self, query: str, limit: int=10):
+        """Search for a user's query in the chunks generated for all docs.
+        Given a query by the user, generate an **embedding vector** for it by calling the super class's ```generate_embedding(query)```
+        method. Iterate over every chunk embedding in ```chunk_embeddings``` attribute, compute the **cosine_similarity score** for
+        the query and the chunk, append to a list of chunk scores. Iterating over all chunk scores, create a dictionary 
+        where **key=doc_id** and **value=highest score amongst all chunks in that doc**. 
+         """
         query_embedding = self.generate_embedding(text=query)
         chunk_scores: list[dict] = []
         for chunk_idx, ch_embedding in enumerate(self.chunk_embeddings):
@@ -112,41 +126,25 @@ class ChunkedSemanticSearch(SemanticSearch):
 
         return results
 
-def semantic_chunk_command(text: str, max_chunk_size: int = DEFAULT_SEMANTIC_CHUNK_SIZE, overlap: int = DEFAULT_CHUNK_OVERLAP,
-) -> list[str]:
+def semantic_chunk(text: str, max_chunk_size: int = DEFAULT_SEMANTIC_CHUNK_SIZE, overlap: int = DEFAULT_CHUNK_OVERLAP) -> list[str]:
     text = text.strip()
     if not text:
         return []
-
-    sentences = re.split(r"(?<=[.!?])\s+", text)
-    if len(sentences) == 1 and not sentences[0].endswith(('.', '!', '?')):
-        sentences = [text]
     
+    sentences = re.split(r"(?<=[.!?])\s+", text)
+
+    # only one sentence in text, and it does not end with a . or ! or ?
+    if len(sentences) == 1 and not sentences[0].endswith((".", "!", "?")):
+        sentences = [text]
+
     sentences = [s.strip() for s in sentences if s.strip()]
     chunks = []
     i = 0
-    n_sentences = len(sentences)
-    while i < n_sentences:
-        chunk_sentences = sentences[i : i + max_chunk_size]
-        if chunks and len(chunk_sentences) <= overlap:
+    num_of_sentences = len(sentences)
+    while i < num_of_sentences:
+        sentences_in_chunk = sentences[i: i+max_chunk_size]
+        if chunks and len(sentences_in_chunk) <= overlap:
             break
-        chunks.append(" ".join(chunk_sentences))
+        chunks.append(" ".join(sentences_in_chunk))
         i += max_chunk_size - overlap
     return chunks
-
-
-def embed_chunks_command():
-    movies_list = get_movie_data_from_file()
-    chunked_sem_search = ChunkedSemanticSearch()
-    chunk_embeddings = chunked_sem_search.load_or_create_chunk_embeddings(movies_list)
-    print(f"Generated {len(chunk_embeddings)} chunked embeddings")
-
-def search_chunked_command(query: str, limit: int=5) -> list[dict]:
-    movies_list = get_movie_data_from_file()
-    searcher = ChunkedSemanticSearch()
-    chunk_embeddings = searcher.load_or_create_chunk_embeddings(documents=movies_list)
-    results = searcher.search_chunks(query=query, limit=limit)
-
-    for i, result in enumerate(results, 1):
-        print(f"\n{i}. {result['title']} (score: {result['score']:.4f})")
-        print(f"   {result['document']}...")

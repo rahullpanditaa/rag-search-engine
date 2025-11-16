@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-
 from lib.semantic_search.commands import (
     verify_model_command,
     embed_text_command,
@@ -10,8 +9,8 @@ from lib.semantic_search.commands import (
     search_command,
     chunk_command
 )
-from lib.chunked_semantic_search import (
-    semantic_chunk_command, 
+from lib.chunked_semantic_search.commands import (
+    semantic_chunk_command,
     embed_chunks_command,
     search_chunked_command
 )
@@ -36,7 +35,7 @@ def main():
     
     chunk_parser = subparsers.add_parser("chunk", help="Chunk input text")
     chunk_parser.add_argument("text", type=str, help="Text to chunk")
-    chunk_parser.add_argument("--chunk-size", type=int, nargs='?', default=200, help="Size of an individual chunk in words")
+    chunk_parser.add_argument("--chunk-size", type=int, nargs='?', default=5, help="Size of an individual chunk in words")
     chunk_parser.add_argument("--overlap", type=int, nargs='?', default=0, help="How many words should overlap between consecutive chunks")
 
     semantic_chunk_parser = subparsers.add_parser("semantic_chunk", help="Split text on sentence boundaries to preserve meaning")
@@ -55,33 +54,23 @@ def main():
     match args.command:
         case "verify":
             verify_model_command()
-
         case "embed_text":
             embed_text_command(args.text)
         case "verify_embeddings":
             verify_embeddings_command()
         case "embedquery":
             embed_query_text_command(args.query)
-
         case "search":
-            # query = args.query
-            # limit = args.limit
-            # print(f"Calculating similarity scores for given query '{query}' for {limit} docs...")
-            search_command(query=args.query, limit=args.limit)
-        
+            search_command(query=args.query, limit=args.limit)        
         case "chunk":
             chunk_command(args.text, chunk_size=args.chunk_size, overlap=args.overlap)
-
-        case "semantic_chunk":
-            chunks = semantic_chunk_command(args.text, args.max_chunk_size, args.overlap)
-            print(f"Semantically chunking {len(args.text)} characters")
-            for i, ch in enumerate(chunks, 1):
-                print(f"{i}. {ch}")
-        case "embed_chunks":
-            embed_chunks_command()
         
+        # Semantic Chunks
+        case "semantic_chunk":
+            semantic_chunk_command(args.text, args.max_chunk_size, args.overlap)
+        case "embed_chunks":
+            embed_chunks_command()        
         case "search_chunked":
-            print(f"Searching for '{args.query}'. Generating upto {args.limit} results...")
             search_chunked_command(query=args.query, limit=args.limit)
         case _:
             parser.print_help()
