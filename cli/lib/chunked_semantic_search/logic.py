@@ -11,6 +11,34 @@ from lib.constants import (
 from lib.semantic_search.logic import SemanticSearch, cosine_similarity
 
 class ChunkedSemanticSearch(SemanticSearch):
+    """
+    Performs semantic search over documents by splitting each document’s
+    description into overlapping text chunks and embedding each chunk
+    independently.
+
+    This approach increases retrieval granularity by allowing search over
+    fine-grained text segments rather than entire documents. Chunk embeddings
+    and chunk-level metadata are stored on disk under `cache/`.
+
+    ChunkedSemanticSearch extends `SemanticSearch` and adds:
+
+        • Chunk generation using a sliding window of sentences
+        • Per-chunk embedding creation and caching
+        • Search that scores individual chunks, then aggregates scores
+          at the document level
+    Attributes:
+        chunk_embeddings (np.ndarray | None):
+            Embedding matrix of all text chunks generated from all documents.
+
+        chunk_metadata (list[dict] | None):
+            Metadata objects describing each chunk, including:
+            {
+                "movie_idx": <document id>,
+                "chunk_idx": <chunk index within the document>,
+                "total_chunks": <total chunks for this document>
+            }
+"""
+
     def __init__(self, model_name="all-MiniLM-L6-v2") -> None:
         super().__init__(model_name)
         self.chunk_embeddings = None

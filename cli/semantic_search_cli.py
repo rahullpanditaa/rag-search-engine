@@ -61,11 +61,11 @@ def main():
         case "embedquery":
             embed_query_text_command(args.query)
         case "search":
-            search_command(query=args.query, limit=args.limit)        
+            search_command(query=args.query, limit=args.limit)  
+
+        # Semantic Chunks      
         case "chunk":
-            chunk_command(args.text, chunk_size=args.chunk_size, overlap=args.overlap)
-        
-        # Semantic Chunks
+            chunk_command(args.text, chunk_size=args.chunk_size, overlap=args.overlap)       
         case "semantic_chunk":
             semantic_chunk_command(args.text, args.max_chunk_size, args.overlap)
         case "embed_chunks":
