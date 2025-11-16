@@ -1,6 +1,6 @@
 import argparse
-from lib.hybrid_search import (
-    normalize_command, 
+from lib.hybrid_search.logic import normalize_command
+from lib.hybrid_search.commands import (
     weighted_search_command,
     rrf_search_command
 )

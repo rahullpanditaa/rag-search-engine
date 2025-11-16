@@ -4,6 +4,30 @@ import time
 from dotenv import load_dotenv
 from google import genai
 
+def llm_evaluation_prompt(query: str, results: list):
+    formatted_results = [
+        f"{i+1}. {doc['title']} - {doc['document'][:200]}" for i, doc in enumerate(results)
+    ]
+    prompt = f"""Rate how relevant each result is to this query on a 0-3 scale:
+
+Query: "{query}"
+
+Results:
+{chr(10).join(formatted_results)}
+
+Scale:
+- 3: Highly relevant
+- 2: Relevant
+- 1: Marginally relevant
+- 0: Not relevant
+
+Do NOT give any numbers other than 0, 1, 2, or 3.
+
+Return ONLY the scores in the same order you were given the documents. Return a valid JSON list, nothing else. For example:
+
+[2, 0, 3, 2, 0, 1]"""
+    return prompt
+
 load_dotenv()
 try:
     api_key = os.environ.get("GEMINI_API_KEY")
