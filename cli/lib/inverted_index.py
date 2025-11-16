@@ -33,11 +33,14 @@ class InvertedIndex:
                 self.index[token] = set()
             self.index[token].add(doc_id)
 
-        self.term_frequencies[doc_id] = Counter(tokens)  
+        counter = Counter(tokens)
+        self.term_frequencies[doc_id] = counter
+
+        self.doc_lengths[doc_id] =  counter.total()
 
         # total number of tokens in each doc
-        for doc_id, tokens_counter in self.term_frequencies.items():
-            self.doc_lengths[doc_id] = tokens_counter.total()
+        # for document_id, tokens_counter in self.term_frequencies.items():
+        #     self.doc_lengths[document_id] = tokens_counter.total()
 
     def get_tf(self, doc_id: int, term: str) -> int:
         term_token = process_text_to_tokens(term)
