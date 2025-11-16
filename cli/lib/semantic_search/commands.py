@@ -1,27 +1,27 @@
-from .semantic_search import SemanticSearch
-from .utils import get_movie_data_from_file
-from .constants import DEFAULT_CHUNK_SIZE
+from .logic import SemanticSearch
+from lib.utils import get_movie_data_from_file
+from lib.constants import DEFAULT_CHUNK_SIZE
 
-def verify_model():
+def verify_model_command():
     sem_search = SemanticSearch()
-    print(f"Model loaded: {sem_search.model}")
+    print(f"Model loaded: {sem_search.model._get_name()}")
     print(f"Max sequence length: {sem_search.model.max_seq_length}")
 
-def embed_text(text: str):
+def embed_text_command(text: str):
     sem_search = SemanticSearch()
     embedding = sem_search.generate_embedding(text=text)
     print(f"Text: {text}")
     print(f"First 3 dimensions: {embedding[:3]}")
     print(f"Dimensions: {embedding.shape[0]}")
 
-def verify_embeddings():
+def verify_embeddings_command():
     sem_search = SemanticSearch()
     movies_list_docs = get_movie_data_from_file()
     embeddings = sem_search.load_or_create_embeddings(movies_list_docs)
     print(f"Number of docs: {len(movies_list_docs)}")
     print(f"Embeddings of shape: {embeddings.shape[0]} vectors in {embeddings.shape[1]} dimensions")    
 
-def embed_query_text(query: str):
+def embed_query_text_command(query: str):
     sem_search = SemanticSearch()
     query_embedding = sem_search.generate_embedding(query)
     print(f"Query: {query}")
@@ -33,9 +33,10 @@ def search_command(query: str, limit: int=5):
     movies_list = get_movie_data_from_file()
     movie_embeddings = sem_search.load_or_create_embeddings(documents=movies_list)
     results = sem_search.search(query=query, limit=limit)
+    print(f"Calculating similarity scores for given query '{query}' for {limit} docs...")
     for i, r in enumerate(results):
-        print(f"{i+1}. {r["title"]} (score: {r["score"]})")
-        print(f"{r["description"]}")
+        print(f"{i+1}. {r["title"]} (score: {r["score"]:.4f})")
+        print(f"{r["description"][:250]}")
         print()
 
 def chunk_command(text: str, chunk_size: int=DEFAULT_CHUNK_SIZE, overlap: int=0):    

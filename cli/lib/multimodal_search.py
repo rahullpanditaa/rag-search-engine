@@ -3,7 +3,7 @@ from PIL import Image
 from sentence_transformers import SentenceTransformer, util
 from pathlib import Path
 from .utils import get_movie_data_from_file
-from .constants import MOVIE_EMBEDDINGS_PATH
+from .constants import MOVIE_EMBEDDINGS_MULTIMODAL_PATH
 
 class MultimodalSearch():
     def __init__(self, documents: list[dict], model_name="clip-ViT-B-32"):
@@ -15,12 +15,12 @@ class MultimodalSearch():
 
     def build_text_embeddings(self):
         self.text_embeddings = self.model.encode(self.texts, show_progress_bar=True)
-        MOVIE_EMBEDDINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
-        np.save(MOVIE_EMBEDDINGS_PATH, self.text_embeddings)
+        MOVIE_EMBEDDINGS_MULTIMODAL_PATH.parent.mkdir(parents=True, exist_ok=True)
+        np.save(MOVIE_EMBEDDINGS_MULTIMODAL_PATH, self.text_embeddings)
 
     def load_or_create_text_embeddings(self):
-        if MOVIE_EMBEDDINGS_PATH.exists():
-            self.text_embeddings = np.load(MOVIE_EMBEDDINGS_PATH, allow_pickle=True)
+        if MOVIE_EMBEDDINGS_MULTIMODAL_PATH.exists():
+            self.text_embeddings = np.load(MOVIE_EMBEDDINGS_MULTIMODAL_PATH, allow_pickle=True)
             return
         self.build_text_embeddings()
 

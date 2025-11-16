@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
 import argparse
-from lib.semantic_search_commands import (
-    verify_model, 
-    embed_text, 
-    verify_embeddings, 
-    embed_query_text, 
-    search_command, 
+
+from lib.semantic_search.commands import (
+    verify_model_command,
+    embed_text_command,
+    verify_embeddings_command,
+    embed_query_text_command,
+    search_command,
     chunk_command
 )
 from lib.chunked_semantic_search import (
@@ -53,20 +54,20 @@ def main():
 
     match args.command:
         case "verify":
-            verify_model()
+            verify_model_command()
 
         case "embed_text":
-            embed_text(args.text)
+            embed_text_command(args.text)
         case "verify_embeddings":
-            verify_embeddings()
+            verify_embeddings_command()
         case "embedquery":
-            embed_query_text(args.query)
+            embed_query_text_command(args.query)
 
         case "search":
-            query = args.query
-            limit = args.limit
-            print(f"Calculating similarity scores for given query '{query}' for {limit} docs...")
-            search_command(query=query, limit=limit)
+            # query = args.query
+            # limit = args.limit
+            # print(f"Calculating similarity scores for given query '{query}' for {limit} docs...")
+            search_command(query=args.query, limit=args.limit)
         
         case "chunk":
             chunk_command(args.text, chunk_size=args.chunk_size, overlap=args.overlap)

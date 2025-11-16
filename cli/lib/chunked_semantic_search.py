@@ -1,4 +1,4 @@
-from lib.semantic_search import SemanticSearch
+from lib.semantic_search.logic import SemanticSearch, cosine_similarity
 from pathlib import Path
 from lib.utils import get_movie_data_from_file
 import numpy as np
@@ -11,7 +11,7 @@ from .constants import (
     DEFAULT_SEMANTIC_CHUNK_SIZE, DEFAULT_CHUNK_OVERLAP,
     SCORE_PRECISION
 )
-from .semantic_search import cosine_similarity
+# from .semantic_search import cosine_similarity
 
 class ChunkedSemanticSearch(SemanticSearch):
     def __init__(self, model_name="all-MiniLM-L6-v2") -> None:

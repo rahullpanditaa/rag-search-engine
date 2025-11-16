@@ -30,3 +30,4 @@ SCORE_PRECISION = 3
 
 # Multimodal Search
 # TEXT_EMBEDDINGS_PATH = CACHE_DIR_PATH / "text_embeddings.npy"
+MOVIE_EMBEDDINGS_MULTIMODAL_PATH = CACHE_DIR_PATH / "movie_embeddings_multimodal.npy"
