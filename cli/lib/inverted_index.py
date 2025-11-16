@@ -97,6 +97,7 @@ class InvertedIndex:
         sorted_scores = sorted(docs_bm25_scores.items(), key=lambda d: d[1], reverse=True)
         return sorted_scores[:limit]
     
+    # get the set of doc ids in which term occurs
     def get_documents(self, term: str) -> list[int]:
         doc_ids = self.index.get(term.lower())
         if not doc_ids:

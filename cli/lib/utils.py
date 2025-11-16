@@ -52,4 +52,3 @@ def get_movie_data_from_file() -> list[dict]:
         movies_dict = json.load(f)
     return movies_dict["movies"]
 
-# def _gemini_client_setup():
