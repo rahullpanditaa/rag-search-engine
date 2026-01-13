@@ -189,8 +189,3 @@ All indexes and embeddings are stored under `cache/`. These include:
 * `chunk_metadata.json` — metadata describing chunk structure
 
 Rebuilding occurs only if files are missing.
-
----
-
-
-This README provides a high-level description of the entire project and its capabilities.
